@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -68,7 +69,8 @@ fun OnboardingScreen(
             3 -> NotificationPermissionStep(onNext = { currentStep = 4 })
             4 -> MusicPermissionStep(onNext = { currentStep = 5 })
             5 -> ManageFilesPermissionStep(onNext = { currentStep = 6 })
-            6 -> FeaturesStep(onFinish = onStartClick)
+            6 -> PermissionsReminderStep(onNext = { currentStep = 7 })
+            7 -> FeaturesStep(onFinish = onStartClick)
         }
     }
 }
@@ -1095,3 +1097,89 @@ fun FeaturesStep(onFinish: () -> Unit) {
 
 data class Particle(val vx: Float, val vy: Float)
 data class FeatureItem(val title: String, val icon: ImageVector)
+
+@Composable
+fun PermissionsReminderStep(onNext: () -> Unit) {
+    val isDark = isSystemInDarkTheme()
+    val diamondsColor = MaterialTheme.colorScheme.primary
+    val iconColor = MaterialTheme.colorScheme.onSurface
+
+    val infiniteTransition = rememberInfiniteTransition(label = "InfiniteLogoRotationReminder")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "LogoRotation"
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(200.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_logo_diamonds),
+                    contentDescription = null,
+                    tint = diamondsColor,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(rotationZ = rotation)
+                )
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.Security,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = stringResource(R.string.onboarding_reminder_title),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(R.string.onboarding_reminder_desc),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Button(
+                onClick = onNext,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    stringResource(R.string.onboarding_reminder_button),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+

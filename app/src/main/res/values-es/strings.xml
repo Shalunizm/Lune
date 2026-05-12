@@ -231,4 +231,7 @@
     <string name="onboarding_feature_more">Y mucho más…</string>
     <string name="onboarding_finish_button">Finalizar</string>
     <string name="onboarding_skip_button">Omitir por ahora</string>
+    <string name="onboarding_reminder_title">Tú tienes el control</string>
+    <string name="onboarding_reminder_desc">Si omitiste algún permiso, puedes activarlo fácilmente más tarde en Ajustes > Seguridad > Permisos.</string>
+    <string name="onboarding_reminder_button">Entendido</string>
 </resources>

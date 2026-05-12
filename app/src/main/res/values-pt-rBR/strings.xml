@@ -230,5 +230,8 @@
     <string name="onboarding_feature_more">E muito mais…</string>
     <string name="onboarding_finish_button">Finalizar</string>
     <string name="onboarding_skip_button">Pular por enquanto</string>
+    <string name="onboarding_reminder_title">Você está no controle</string>
+    <string name="onboarding_reminder_desc">Se você pulou alguma permissão, pode ativá-la facilmente mais tarde em Configurações > Segurança > Permissões.</string>
+    <string name="onboarding_reminder_button">Entendido</string>
     <string name="option_share">Compartilhar</string>
 </resources>

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -115,32 +116,37 @@ fun PermissionsScreen(onBack: () -> Unit) {
     ) { innerPadding ->
         val permissions = listOf(
             PermissionItem(
-                title = stringResource(R.string.perm_storage_title),
-                description = stringResource(R.string.perm_storage_desc),
-                icon = Icons.Default.Folder
+                title = stringResource(R.string.perm_record_audio_title),
+                description = stringResource(R.string.perm_record_audio_desc),
+                icon = Icons.Default.Mic,
+                permission = android.Manifest.permission.RECORD_AUDIO
+            ),
+            PermissionItem(
+                title = stringResource(R.string.perm_bluetooth_title),
+                description = stringResource(R.string.perm_bluetooth_desc),
+                icon = Icons.Default.Bluetooth,
+                permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) 
+                    android.Manifest.permission.BLUETOOTH_CONNECT else null
             ),
             PermissionItem(
                 title = stringResource(R.string.perm_notifications_title),
                 description = stringResource(R.string.perm_notifications_desc),
-                icon = Icons.Default.Notifications
-            ),
-
-            PermissionItem(
-                title = stringResource(R.string.perm_bluetooth_title),
-                description = stringResource(R.string.perm_bluetooth_desc),
-                icon = Icons.Default.Bluetooth
+                icon = Icons.Default.Notifications,
+                permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) 
+                    android.Manifest.permission.POST_NOTIFICATIONS else null
             ),
             PermissionItem(
-                title = stringResource(R.string.perm_audio_service_title),
-                description = stringResource(R.string.perm_audio_service_desc),
-                icon = Icons.Default.MusicNote
-            ),
-            PermissionItem(
-                title = stringResource(R.string.perm_record_audio_title),
-                description = stringResource(R.string.perm_record_audio_desc),
-                icon = Icons.Default.Mic
+                title = stringResource(R.string.perm_storage_title),
+                description = stringResource(R.string.perm_storage_desc),
+                icon = Icons.Default.Folder,
+                permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU)
+                    android.Manifest.permission.READ_MEDIA_AUDIO else android.Manifest.permission.READ_EXTERNAL_STORAGE
             )
         )
+
+        val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+        ) { /* Logic to refresh UI if needed */ }
 
         LazyColumn(
             modifier = Modifier
@@ -162,7 +168,10 @@ fun PermissionsScreen(onBack: () -> Unit) {
                     headlineText = permission.title,
                     supportingText = permission.description,
                     icon = permission.icon,
-                    position = position
+                    position = position,
+                    onClick = {
+                        permission.permission?.let { launcher.launch(it) }
+                    }
                 )
             }
         }
@@ -178,7 +187,8 @@ fun PermissionsPreferenceItem(
     headlineText: String,
     supportingText: String,
     icon: ImageVector,
-    position: PermissionSectionPosition
+    position: PermissionSectionPosition,
+    onClick: () -> Unit = {}
 ) {
     val shape = when (position) {
         PermissionSectionPosition.FIRST -> RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
@@ -190,7 +200,8 @@ fun PermissionsPreferenceItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 1.dp),
+            .padding(vertical = 1.dp)
+            .clickable(onClick = onClick),
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         tonalElevation = 1.dp
@@ -236,5 +247,6 @@ fun PermissionsPreferenceItem(
 data class PermissionItem(
     val title: String,
     val description: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val permission: String? = null
 )
