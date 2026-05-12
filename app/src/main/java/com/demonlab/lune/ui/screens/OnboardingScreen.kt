@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.demonlab.lune.R
+import com.demonlab.lune.tools.SettingsManager
 import kotlinx.coroutines.delay
 
 @Composable
@@ -697,32 +698,29 @@ fun MusicPermissionStep(onNext: () -> Unit) {
 @Composable
 fun ManageFilesPermissionStep(onNext: () -> Unit) {
     val context = LocalContext.current
+    val settingsManager = SettingsManager.getInstance(context)
     val isDark = isSystemInDarkTheme()
     val diamondsColor = if (isDark) Color.White else Color.Black
     val iconColor = if (isDark) Color.Black else Color.White
 
-    // Manage Files permission check (API 30+)
-    fun checkPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            true
-        }
+    var isPermissionGranted by remember {
+        mutableStateOf(settingsManager.musicFolderUri != null)
     }
 
-    var isPermissionGranted by remember { mutableStateOf(checkPermission()) }
-
-    // Re-check when returning to app
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                isPermissionGranted = checkPermission()
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+                settingsManager.musicFolderUri = uri.toString()
+                isPermissionGranted = true
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -771,7 +769,7 @@ fun ManageFilesPermissionStep(onNext: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "${stringResource(R.string.onboarding_perm_manage_files_title)} - ${stringResource(R.string.onboarding_perm_required)}",
+                text = "${stringResource(R.string.onboarding_perm_manage_files_title)}${if (isPermissionGranted) "" else " - " + stringResource(R.string.onboarding_perm_required)}",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
@@ -794,20 +792,7 @@ fun ManageFilesPermissionStep(onNext: () -> Unit) {
                     if (isPermissionGranted) {
                         onNext()
                     } else {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                            try {
-                                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                                    data = android.net.Uri.parse("package:${context.packageName}")
-                                }
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                                context.startActivity(intent)
-                            }
-                        } else {
-                            // If somehow here on < R, just finish
-                            onNext()
-                        }
+                        launcher.launch(null)
                     }
                 },
                 modifier = Modifier.height(56.dp),

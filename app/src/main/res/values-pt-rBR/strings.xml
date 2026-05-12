@@ -218,8 +218,8 @@
     <string name="onboarding_perm_notifications_desc">Necessário para mostrar os controles do player de música na barra de status e na tela de bloqueio, permitindo que você controle a reprodução a cualquier momento.</string>
     <string name="onboarding_perm_music_title">Músicas e Áudio</string>
     <string name="onboarding_perm_music_desc">Essencial para escanear, indexar e reproduzir sua coleção de músicas armazenada neste dispositivo.</string>
-    <string name="onboarding_perm_manage_files_title">Gerenciar Arquivos</string>
-    <string name="onboarding_perm_manage_files_desc">Necessário para gerenciar e organizar todos os seus arquivos de áudio, listas de reprodução e backups em todo o seu armazenamento sem problemas.</string>
+    <string name="onboarding_perm_manage_files_title">Acesso à pasta de música</string>
+    <string name="onboarding_perm_manage_files_desc">Selecione sua pasta de música para permitir que o Lune organize e gerencie sua biblioteca com segurança.</string>
     <string name="onboarding_welcome_back">Bem-vindo ao Lune</string>
     <string name="onboarding_listen_style">Ouça com estilo</string>
     <string name="onboarding_feature_hifi">Suporte a áudio HiFi</string>

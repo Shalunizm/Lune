@@ -220,8 +220,8 @@
     <string name="onboarding_perm_notifications_desc">Necessary to show the music player controls in the status bar and lock screen, allowing you to control playback at any time.</string>
     <string name="onboarding_perm_music_title">Music &amp; Audio</string>
     <string name="onboarding_perm_music_desc">Essential to scan, index, and playback your music collection stored on this device.</string>
-    <string name="onboarding_perm_manage_files_title">Manage Files</string>
-    <string name="onboarding_perm_manage_files_desc">Necessary to manage and organize all your audio files, playlists, and backups across your entire storage seamlessly.</string>
+    <string name="onboarding_perm_manage_files_title">Music Folder Access</string>
+    <string name="onboarding_perm_manage_files_desc">Select your music folder to allow Lune to organize and manage your library safely.</string>
     <string name="onboarding_welcome_back">Welcome to Lune</string>
     <string name="onboarding_listen_style">Listen with style</string>
     <string name="onboarding_feature_hifi">HiFi Audio Support</string>

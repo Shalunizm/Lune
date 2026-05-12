@@ -73,6 +73,7 @@ class PermissionsActivity : ComponentActivity() {
 @Composable
 fun PermissionsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
+    val settingsManager = com.demonlab.lune.tools.SettingsManager.getInstance(context)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -141,12 +142,34 @@ fun PermissionsScreen(onBack: () -> Unit) {
                 icon = Icons.Default.Folder,
                 permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU)
                     android.Manifest.permission.READ_MEDIA_AUDIO else android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ),
+            PermissionItem(
+                title = stringResource(R.string.onboarding_perm_manage_files_title),
+                description = stringResource(R.string.onboarding_perm_manage_files_desc),
+                icon = Icons.Default.Folder,
+                isSaf = true
             )
         )
 
         val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
             androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
         ) { /* Logic to refresh UI if needed */ }
+
+        val safLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+        ) { uri ->
+            if (uri != null) {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                    settingsManager.musicFolderUri = uri.toString()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
 
         LazyColumn(
             modifier = Modifier
@@ -170,7 +193,11 @@ fun PermissionsScreen(onBack: () -> Unit) {
                     icon = permission.icon,
                     position = position,
                     onClick = {
-                        permission.permission?.let { launcher.launch(it) }
+                        if (permission.isSaf) {
+                            safLauncher.launch(null)
+                        } else {
+                            permission.permission?.let { launcher.launch(it) }
+                        }
                     }
                 )
             }
@@ -248,5 +275,6 @@ data class PermissionItem(
     val title: String,
     val description: String,
     val icon: ImageVector,
-    val permission: String? = null
+    val permission: String? = null,
+    val isSaf: Boolean = false
 )

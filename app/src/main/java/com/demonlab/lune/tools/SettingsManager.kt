@@ -131,6 +131,10 @@ class SettingsManager(context: Context) {
         get() = prefs.getLong("last_stats_reset_timestamp", 0L)
         set(value) = prefs.edit().putLong("last_stats_reset_timestamp", value).apply()
 
+    var musicFolderUri: String?
+        get() = prefs.getString("music_folder_uri", null)
+        set(value) = prefs.edit().putString("music_folder_uri", value).apply()
+
     fun getPlaylistShuffle(playlistId: Long): Boolean {
         return prefs.getBoolean("shuffle_playlist_$playlistId", false)
     }

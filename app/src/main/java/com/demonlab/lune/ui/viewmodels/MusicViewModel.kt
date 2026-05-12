@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.demonlab.lune.tools.MusicProvider
 import com.demonlab.lune.tools.Song
+import com.demonlab.lune.tools.SettingsManager
 import com.demonlab.lune.tools.MetadataManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -294,24 +295,39 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteSongPermanently(songId: Long, songData: String, songUri: android.net.Uri) {
+        val context = getApplication<Application>()
+        val settingsManager = SettingsManager.getInstance(context)
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    // 1. Delete actual file
-                    val file = java.io.File(songData)
-                    if (file.exists()) {
-                        file.delete()
+                    // 1. Try to delete via SAF if we have a folder URI
+                    val folderUriString = settingsManager.musicFolderUri as String?
+                    if (folderUriString != null) {
+                        val folderUri = android.net.Uri.parse(folderUriString)
+                        val tree = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, folderUri)
+                        if (tree != null && tree.canWrite()) {
+                            val fileName = java.io.File(songData).name
+                            val fileInSaf = tree.findFile(fileName)
+                            fileInSaf?.delete()
+                        }
                     }
-                    
+
                     // 2. Delete from MediaStore
-                    getApplication<Application>().contentResolver.delete(
+                    // On Android 11+, this might throw a RecoverableSecurityException if not owner
+                    context.contentResolver.delete(
                         songUri,
                         null,
                         null
                     )
                     
-                    // 3. Delete metadata overrides
-                    val db = com.demonlab.lune.data.MusicDatabase.getDatabase(getApplication())
+                    // 3. Fallback: direct file delete (will only work if owner or on older APIs)
+                    val file = java.io.File(songData)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                    
+                    // 4. Delete metadata overrides
+                    val db = com.demonlab.lune.data.MusicDatabase.getDatabase(context)
                     val override = db.songOverrideDao().getOverrideForSong(songId)
                     if (override != null) {
                         db.songOverrideDao().deleteOverride(override)
