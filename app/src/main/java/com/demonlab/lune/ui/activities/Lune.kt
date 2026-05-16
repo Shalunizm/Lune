@@ -1270,17 +1270,13 @@ fun MainScreen(
                     musicViewModel.updateMetadata(
                         song = song,
                         title = updatedTitle,
-                        artist = updatedArtist,                        album = song.album,
+                        artist = updatedArtist,
+                        album = song.album,
                         genre = song.genre,
                         coverUri = updatedCoverUri,
                         onSuccess = {
-                            // Update current song if it's the one being edited
-                            if (currentSong?.id == song.id) {
-                                val updatedSong = song.copy(
-                                    title = updatedTitle,
-                                    artist = updatedArtist,
-                                    coverUrl = updatedCoverUri?.toString() ?: song.coverUrl
-                                )
+                            val updatedSong = musicViewModel.allSongs.find { it.id == song.id }
+                            if (updatedSong != null && currentSong?.id == song.id) {
                                 playbackManager.updateSongMetadata(updatedSong)
                                 onCurrentSongChange(updatedSong)
                             }
