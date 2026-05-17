@@ -58,6 +58,11 @@
             android:name=".ui.activities.LyricsActivity"
             android:exported="false"
             android:theme="@style/Theme.Lune" />
+        <activity
+            android:name=".ui.activities.CustomizationActivity"
+            android:exported="false"
+            android:label="@string/customization"
+            android:theme="@style/Theme.Lune" />
 
         <service
             android:name=".tools.MusicService"
