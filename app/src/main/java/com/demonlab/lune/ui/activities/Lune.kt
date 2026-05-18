@@ -4230,7 +4230,12 @@ fun AddToPlaylistDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            FilledTonalButton(
+                onClick = onDismiss,
+                shape = CircleShape
+            ) {
+                Text(stringResource(R.string.cancel), fontWeight = FontWeight.Bold)
+            }
         },
         shape = RoundedCornerShape(28.dp)
     )
