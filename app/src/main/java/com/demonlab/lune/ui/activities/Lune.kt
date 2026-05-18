@@ -474,6 +474,9 @@ fun MainScreen(
     val sTabFavorites = stringResource(R.string.tab_favorites)
     val sTabAlbums = stringResource(R.string.tab_albums)
     val sTabPlaylists = stringResource(R.string.playlists)
+    val sortedSongs = remember(filteredSongs, playbackManager.sortOption, playbackManager.isSortAscending) {
+        playbackManager.getSortedList(filteredSongs)
+    }
     val contextId = remember(selectedFolder) {
         when (selectedFolder) {
             "RESUME", "ALL", "ALBUMS" -> -100L
@@ -485,6 +488,7 @@ fun MainScreen(
     var showEditSheet by remember { mutableStateOf(false) }
     var optionsSong by remember { mutableStateOf<Song?>(null) }
     var showOptionsSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
     var showMainAddToPlaylistDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -986,18 +990,20 @@ fun MainScreen(
                                     if (showSimplifiedHeader) {
                                         item {
                                             SongsListHeader(
-                                                songs = filteredSongs,
+                                                songs = sortedSongs,
                                                 isShuffleActive = isShuffleActive,
                                                 isCurrentListPlaying = isCurrentListPlaying,
                                                 isPlaying = isPlaying,
+                                                isSortActive = playbackManager.sortOption != "ALPHABETICAL" || !playbackManager.isSortAscending,
+                                                onSortClick = { showSortSheet = true },
                                                 onPlayClick = {
                                                     if (isCurrentListPlaying) {
                                                         if (isPlaying) playbackManager.pause() else playbackManager.resume()
                                                         onIsPlayingChange(!isPlaying)
-                                                    } else if (filteredSongs.isNotEmpty()) {
-                                                        val songToPlay = if (isShuffleActive) filteredSongs.random() else filteredSongs[0]
+                                                    } else if (sortedSongs.isNotEmpty()) {
+                                                        val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
                                                         onCurrentSongChange(songToPlay)
-                                                        playbackManager.play(songToPlay, filteredSongs, contextId, category = selectedFolder)
+                                                        playbackManager.play(songToPlay, sortedSongs, contextId, category = selectedFolder)
                                                         onIsPlayingChange(true)
                                                     }
                                                 },
@@ -1013,9 +1019,9 @@ fun MainScreen(
                                             )
                                         }
                                     }
-                                    itemsIndexed(filteredSongs, key = { _, it -> it.id }) { index, song ->
+                                    itemsIndexed(sortedSongs, key = { _, it -> it.id }) { index, song ->
                                         val isFirst = index == 0
-                                        val isLast = index == filteredSongs.lastIndex
+                                        val isLast = index == sortedSongs.lastIndex
                                             SongItem(
                                                 isFirst = isFirst,
                                                 isLast = isLast,
@@ -1025,7 +1031,7 @@ fun MainScreen(
                                             onClick = {
                                                 if (currentSong?.id != song.id || playbackManager.activePlaylistId != contextId) {
                                                     onCurrentSongChange(song)
-                                                    playbackManager.play(song, filteredSongs, contextId, category = selectedFolder)
+                                                    playbackManager.play(song, sortedSongs, contextId, category = selectedFolder)
                                                     onIsPlayingChange(true)
                                                 }
                                                 onIsPlayerExpandedChange(true)
@@ -1040,9 +1046,10 @@ fun MainScreen(
                                 }
 
                                 // Scroll to Current Button
-                                val targetIndex = remember(filteredSongs, currentSong, contextId, playbackManager.activePlaylistId) {
+                                val targetIndex = remember(sortedSongs, currentSong, contextId, playbackManager.activePlaylistId, showSimplifiedHeader) {
                                     if (currentSong != null && playbackManager.activePlaylistId == contextId) {
-                                        filteredSongs.indexOfFirst { it.id == currentSong.id }
+                                        val idx = sortedSongs.indexOfFirst { it.id == currentSong.id }
+                                        if (idx != -1) idx + (if (showSimplifiedHeader) 1 else 0) else -1
                                     } else -1
                                 }
                                 
@@ -1102,8 +1109,8 @@ fun MainScreen(
                     playlist = playListRender,
                     songs = playlistSongs,
                     onBack = { selectedPlaylist = null },
-                    onSongClick = { song ->
-                        playbackManager.play(song, playlistSongs, playListRender.id, category = "PLAYLISTS")
+                    onSongClick = { song, sortedList ->
+                        playbackManager.play(song, sortedList, playListRender.id, category = "PLAYLISTS")
                         onCurrentSongChange(song)
                         onIsPlayingChange(true)
                     },
@@ -1111,6 +1118,7 @@ fun MainScreen(
                         optionsSong = song
                         showOptionsSheet = true
                     },
+                    onSortClick = { showSortSheet = true },
                     currentlyPlayingId = if (playbackManager.activePlaylistId == playListRender.id) currentSong?.id else null,
                     bottomPadding = if (currentSong != null) 80.dp else 0.dp,
                     viewModel = musicViewModel
@@ -1134,8 +1142,8 @@ fun MainScreen(
                 AlbumDetailView(
                     album = albumRender,
                     onBack = { selectedAlbum = null },
-                    onSongClick = { song ->
-                        playbackManager.play(song, albumRender.songs, albumRender.id, category = "ALBUMS")
+                    onSongClick = { song, sortedList ->
+                        playbackManager.play(song, sortedList, albumRender.id, category = "ALBUMS")
                         onCurrentSongChange(song)
                         onIsPlayingChange(true)
                     },
@@ -1143,6 +1151,7 @@ fun MainScreen(
                         optionsSong = song
                         showOptionsSheet = true
                     },
+                    onSortClick = { showSortSheet = true },
                     currentlyPlayingId = if (playbackManager.activePlaylistId == albumRender.id) currentSong?.id else null,
                     bottomPadding = if (currentSong != null) 80.dp else 0.dp
                 )
@@ -1316,6 +1325,13 @@ fun MainScreen(
                 songToDelete = optionsSong
                 showDeleteDialog = true
             }
+        )
+    }
+
+    if (showSortSheet) {
+        SortBottomSheet(
+            playbackManager = playbackManager,
+            onDismiss = { showSortSheet = false }
         )
     }
 
@@ -1690,6 +1706,8 @@ fun SongsListHeader(
     isShuffleActive: Boolean,
     isCurrentListPlaying: Boolean,
     isPlaying: Boolean,
+    isSortActive: Boolean,
+    onSortClick: () -> Unit,
     onPlayClick: () -> Unit,
     onShuffleClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -1728,8 +1746,26 @@ fun SongsListHeader(
             }
         }
 
-        // Right side: Play and Shuffle
+        // Right side: Play and Shuffle and Sort
         Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                onClick = onSortClick,
+                shape = CircleShape,
+                color = if (isSortActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isSortActive) Icons.Default.Schedule else Icons.Default.SortByAlpha,
+                        contentDescription = null,
+                        tint = if (isSortActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Surface(
                 onClick = onShuffleClick,
                 shape = CircleShape,
@@ -1848,6 +1884,152 @@ fun formatLongDuration(durationInMillis: Long): String {
         "%d:%02d:%02d".format(java.util.Locale.getDefault(), hours, minutes, seconds)
     } else {
         "%02d:%02d".format(java.util.Locale.getDefault(), minutes, seconds)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SortBottomSheet(
+    playbackManager: PlaybackManager,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.sort_options_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp)
+            )
+            
+            // Top row with Pill switch and Restore button (Restore + Switch side by side on the left)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Restore defaults circular button
+                IconButton(
+                    onClick = {
+                        playbackManager.setSortSettings("ALPHABETICAL", true)
+                    },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = stringResource(R.string.restore_defaults),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                // Pill Ascending/Descending Toggle
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                    onClick = {
+                        playbackManager.setSortSettings(playbackManager.sortOption, !playbackManager.isSortAscending)
+                    }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = if (playbackManager.isSortAscending) stringResource(R.string.sort_ascending) else stringResource(R.string.sort_descending),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Switch(
+                            checked = playbackManager.isSortAscending,
+                            onCheckedChange = {
+                                playbackManager.setSortSettings(playbackManager.sortOption, it)
+                            },
+                            thumbContent = {
+                                Icon(
+                                    imageVector = if (playbackManager.isSortAscending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+            
+            // Options cards
+            val options = listOf(
+                "ALPHABETICAL" to R.string.sort_alphabetical,
+                "ARTIST" to R.string.sort_artist,
+                "DURATION" to R.string.sort_duration,
+                "DATE_ADDED" to R.string.sort_date_added
+            )
+            
+            options.forEachIndexed { index, (option, stringResId) ->
+                val isSelected = playbackManager.sortOption == option
+                val shape = when (index) {
+                    0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                    options.lastIndex -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                    else -> RoundedCornerShape(4.dp)
+                }
+                
+                Surface(
+                    onClick = {
+                        playbackManager.setSortSettings(option, playbackManager.isSortAscending)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 2.dp),
+                    shape = shape,
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                ) {
+                    ListItem(
+                        headlineContent = { 
+                            Text(
+                                text = stringResource(stringResId),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            ) 
+                        },
+                        trailingContent = {
+                            Surface(
+                                shape = CircleShape,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = if (isSelected) Icons.Default.Check else Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -2665,6 +2847,8 @@ fun FullPlayer(
                 onDismiss = { showQueueSheet = false }
             )
         }
+
+
 
         if (showOptionsSheet) {
             PlayerOptionsBottomSheet(
@@ -4057,8 +4241,9 @@ fun PlaylistDetailView(
     playlist: com.demonlab.lune.data.Playlist,
     songs: List<Song>,
     onBack: () -> Unit,
-    onSongClick: (Song) -> Unit,
+    onSongClick: (Song, List<Song>) -> Unit,
     onOptionsClick: (Song) -> Unit,
+    onSortClick: () -> Unit,
     currentlyPlayingId: Long?,
     bottomPadding: Dp,
     viewModel: com.demonlab.lune.ui.viewmodels.MusicViewModel
@@ -4068,6 +4253,10 @@ fun PlaylistDetailView(
     var showPlaylistOptions by remember { mutableStateOf(false) }
     var showAddSongsDialog by remember { mutableStateOf(false) }
     val isPlaying = playbackManager.isPlaying
+    
+    val sortedSongs = remember(songs, playbackManager.sortOption, playbackManager.isSortAscending) {
+        playbackManager.getSortedList(songs)
+    }
     
     // Calculate header visibility based on scroll
     val headerAlpha by remember {
@@ -4233,6 +4422,23 @@ fun PlaylistDetailView(
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
+
+                                val isSortActive = playbackManager.sortOption != "ALPHABETICAL" || !playbackManager.isSortAscending
+                                Surface(
+                                    onClick = onSortClick,
+                                    shape = CircleShape,
+                                    color = if (isSortActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = if (isSortActive) Icons.Default.Schedule else Icons.Default.SortByAlpha,
+                                            contentDescription = null,
+                                            tint = if (isSortActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
                                 
                                 Spacer(modifier = Modifier.width(8.dp))
                                 
@@ -4266,9 +4472,9 @@ fun PlaylistDetailView(
                                     onClick = { 
                                         if (isCurrentPlaylistPlaying) {
                                             if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                                        } else if (songs.isNotEmpty()) {
-                                            val songToPlay = if (isShuffleActive) songs.random() else songs[0]
-                                            onSongClick(songToPlay)
+                                        } else if (sortedSongs.isNotEmpty()) {
+                                            val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
+                                            onSongClick(songToPlay, sortedSongs)
                                         }
                                     },
                                     shape = CircleShape,
@@ -4290,7 +4496,7 @@ fun PlaylistDetailView(
                 }
 
                 }
-                if (songs.isEmpty()) {
+                if (sortedSongs.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier.fillParentMaxHeight(0.6f).fillMaxWidth(),
@@ -4304,16 +4510,16 @@ fun PlaylistDetailView(
                         }
                     }
                 } else {
-                    itemsIndexed(songs, key = { _, it -> it.id }) { index, song ->
+                    itemsIndexed(sortedSongs, key = { _, it -> it.id }) { index, song ->
                         val isFirst = index == 0
-                        val isLast = index == songs.lastIndex
+                        val isLast = index == sortedSongs.lastIndex
                         SongItem(
                             isFirst = isFirst,
                             isLast = isLast,
                             song = song, 
                             currentlyPlaying = song.id == currentlyPlayingId, 
                             isPlaying = isPlaying,
-                            onClick = { onSongClick(song) },
+                            onClick = { onSongClick(song, sortedSongs) },
                             onOptionsClick = { onOptionsClick(song) }
                         )
                     }
@@ -4359,8 +4565,8 @@ fun PlaylistDetailView(
         }
 
         // Scroll to Current Button overlay
-        val targetIndex = remember(songs, currentlyPlayingId) {
-            val idx = songs.indexOfFirst { it.id == currentlyPlayingId }
+        val targetIndex = remember(sortedSongs, currentlyPlayingId) {
+            val idx = sortedSongs.indexOfFirst { it.id == currentlyPlayingId }
             if (idx != -1) idx + 1 else -1 // +1 for the header
         }
         
@@ -4379,8 +4585,9 @@ fun PlaylistDetailView(
 fun AlbumDetailView(
     album: Album,
     onBack: () -> Unit,
-    onSongClick: (Song) -> Unit,
+    onSongClick: (Song, List<Song>) -> Unit,
     onOptionsClick: (Song) -> Unit,
+    onSortClick: () -> Unit,
     currentlyPlayingId: Long?,
     bottomPadding: Dp
 ) {
@@ -4388,6 +4595,9 @@ fun AlbumDetailView(
     val playbackManager = PlaybackManager.getInstance(context)
     val listState = rememberLazyListState()
     val isPlaying = playbackManager.isPlaying
+    val sortedSongs = remember(album.songs, playbackManager.sortOption, playbackManager.isSortAscending) {
+        playbackManager.getSortedList(album.songs)
+    }
     
     // Calculate header visibility based on scroll
     val headerAlpha by remember {
@@ -4540,9 +4750,27 @@ fun AlbumDetailView(
                                     )
                                 }
                             }
-
                             // Right side: Controls (Shuffle, Play) - No MoreVert for artists
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                val isSortActive = playbackManager.sortOption != "ALPHABETICAL" || !playbackManager.isSortAscending
+                                Surface(
+                                    onClick = onSortClick,
+                                    shape = CircleShape,
+                                    color = if (isSortActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = if (isSortActive) Icons.Default.Schedule else Icons.Default.SortByAlpha,
+                                            contentDescription = null,
+                                            tint = if (isSortActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                                
+                                Spacer(modifier = Modifier.width(8.dp))
+
                                 Surface(
                                     onClick = { 
                                         if (isCurrentAlbumPlaying) {
@@ -4568,13 +4796,14 @@ fun AlbumDetailView(
                                 }
                                 
                                 Spacer(modifier = Modifier.width(12.dp))
-                                                                 Surface(
+                                
+                                Surface(
                                     onClick = { 
                                         if (isCurrentAlbumPlaying) {
                                             if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                                        } else if (album.songs.isNotEmpty()) {
-                                            val songToPlay = if (isShuffleActive) album.songs.random() else album.songs[0]
-                                            onSongClick(songToPlay)
+                                        } else if (sortedSongs.isNotEmpty()) {
+                                            val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
+                                            onSongClick(songToPlay, sortedSongs)
                                         }
                                     },
                                     shape = CircleShape,
@@ -4594,9 +4823,9 @@ fun AlbumDetailView(
                         }
                     }
                 }
-
+ 
                 }
-                if (album.songs.isEmpty()) {
+                if (sortedSongs.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier.fillParentMaxHeight(0.6f).fillMaxWidth(),
@@ -4606,16 +4835,16 @@ fun AlbumDetailView(
                         }
                     }
                 } else {
-                    itemsIndexed(album.songs, key = { _, it -> it.id }) { index, song ->
+                    itemsIndexed(sortedSongs, key = { _, it -> it.id }) { index, song ->
                         val isFirst = index == 0
-                        val isLast = index == album.songs.lastIndex
+                        val isLast = index == sortedSongs.lastIndex
                         SongItem(
                             isFirst = isFirst,
                             isLast = isLast,
                             song = song, 
                             currentlyPlaying = song.id == currentlyPlayingId, 
                             isPlaying = isPlaying,
-                            onClick = { onSongClick(song) },
+                            onClick = { onSongClick(song, sortedSongs) },
                             onOptionsClick = { onOptionsClick(song) }
                         )
                     }
@@ -4624,8 +4853,8 @@ fun AlbumDetailView(
         }
 
         // Scroll to Current Button overlay
-        val targetIndex = remember(album.songs, currentlyPlayingId) {
-            val idx = album.songs.indexOfFirst { it.id == currentlyPlayingId }
+        val targetIndex = remember(sortedSongs, currentlyPlayingId) {
+            val idx = sortedSongs.indexOfFirst { it.id == currentlyPlayingId }
             if (idx != -1) idx + 1 else -1 // +1 for the header
         }
         

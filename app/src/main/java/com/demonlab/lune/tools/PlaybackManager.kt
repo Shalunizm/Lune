@@ -44,6 +44,11 @@ class PlaybackManager private constructor(private val context: Context) {
     private var shuffledIndices: List<Int> = emptyList()
     private var currentShufflePosition: Int = -1
     
+    var sortOption by mutableStateOf(settings.sortOption)
+        private set
+    var isSortAscending by mutableStateOf(settings.isSortAscending)
+        private set
+
     var isShuffle by mutableStateOf(settings.isShuffle)
     var isCrossfade by mutableStateOf(settings.isCrossfade)
     var isAutomix by mutableStateOf(settings.isAutomix)
@@ -617,6 +622,40 @@ class PlaybackManager private constructor(private val context: Context) {
         val cal2 = Calendar.getInstance().apply { timeInMillis = t2 }
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    }
+
+    fun setSortSettings(option: String, ascending: Boolean) {
+        sortOption = option
+        isSortAscending = ascending
+        settings.sortOption = option
+        settings.isSortAscending = ascending
+        
+        resortActivePlaylist()
+    }
+
+    fun resortActivePlaylist() {
+        if (activePlaylist.isNotEmpty()) {
+            activePlaylist = getSortedList(activePlaylist)
+            if (isShuffle) {
+                updateShuffledQueue()
+            }
+        }
+    }
+
+    fun getSortedList(list: List<Song>): List<Song> {
+        val comparator = when (sortOption) {
+            "ALPHABETICAL" -> compareBy<Song> { it.title.lowercase(java.util.Locale.getDefault()) }
+            "ARTIST" -> compareBy<Song> { it.artist.lowercase(java.util.Locale.getDefault()) }
+            "DURATION" -> compareBy<Song> { it.duration }
+            "DATE_ADDED" -> compareBy<Song> { it.dateAdded }
+            else -> compareBy<Song> { it.title.lowercase(java.util.Locale.getDefault()) }
+        }
+        
+        return if (isSortAscending) {
+            list.sortedWith(comparator)
+        } else {
+            list.sortedWith(comparator.reversed())
+        }
     }
 
     fun toggleShuffle() {

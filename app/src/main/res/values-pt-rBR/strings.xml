@@ -174,6 +174,13 @@
     <string name="perm_record_audio_desc">Necessário para que o visualizador de áudio processe e exiba dados de frequência em tempo real.</string>
      
     <!-- Playlist Export/Import -->
+    <string name="sort_options_title">Organizar músicas</string>
+    <string name="sort_ascending">Crescente</string>
+    <string name="sort_descending">Decrescente</string>
+    <string name="sort_alphabetical">Alfabético</string>
+    <string name="sort_artist">Artista</string>
+    <string name="sort_duration">Duração</string>
+    <string name="sort_date_added">Data de adição</string>
     <string name="backup_warning_title">Aviso Importante</string>
     <string name="backup_warning_desc">O Lune importa apenas playlists pré-exportadas por este aplicativo. Certifique-se de ter os arquivos de música correspondentes neste dispositivo para a reprodução correta.</string>
     <string name="export_playlists">Exportar Playlists</string> 

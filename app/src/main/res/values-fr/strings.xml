@@ -175,6 +175,13 @@
     <string name="perm_record_audio_desc">Nécessaire pour que le visualiseur audio traite et affiche les données de fréquence en temps réel.</string>
 
     <!-- Playlist Export/Import -->
+    <string name="sort_options_title">Trier les chansons</string>
+    <string name="sort_ascending">Ascendant</string>
+    <string name="sort_descending">Descendant</string>
+    <string name="sort_alphabetical">Alphabétique</string>
+    <string name="sort_artist">Artiste</string>
+    <string name="sort_duration">Durée</string>
+    <string name="sort_date_added">Date d\'ajout</string>
     <string name="backup_warning_title">Avis Important</string>
     <string name="backup_warning_desc">Lune importe uniquement les listes pré-exportées par cette application. Assurez-vous d\'avoir les fichiers musicaux correspondants sur cet appareil pour une lecture correcte.</string>
     <string name="export_playlists">Exporter les playlists</string>

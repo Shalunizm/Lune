@@ -46,6 +46,14 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("force_dark_mode", false)
         set(value) = prefs.edit().putBoolean("force_dark_mode", value).apply()
 
+    var sortOption: String
+        get() = prefs.getString("sort_option", "ALPHABETICAL") ?: "ALPHABETICAL"
+        set(value) = prefs.edit().putString("sort_option", value).apply()
+
+    var isSortAscending: Boolean
+        get() = prefs.getBoolean("is_sort_ascending", true)
+        set(value) = prefs.edit().putBoolean("is_sort_ascending", value).apply()
+
     var isShuffle: Boolean
         get() = prefs.getBoolean("is_shuffle", false)
         set(value) = prefs.edit().putBoolean("is_shuffle", value).apply()

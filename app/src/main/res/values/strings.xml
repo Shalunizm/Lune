@@ -176,6 +176,13 @@
     <string name="perm_record_audio_desc">Necessary for the audio visualizer to process and display real-time frequency data.</string>
 
     <!-- Playlist Export/Import -->
+    <string name="sort_options_title">Sort Songs</string>
+    <string name="sort_ascending">Ascending</string>
+    <string name="sort_descending">Descending</string>
+    <string name="sort_alphabetical">Alphabetical</string>
+    <string name="sort_artist">Artist</string>
+    <string name="sort_duration">Duration</string>
+    <string name="sort_date_added">Date Added</string>
     <string name="backup_warning_title">Important Notice</string>
     <string name="backup_warning_desc">Lune only imports playlists pre-exported by this application. Ensure you have the corresponding music files stored on this device for proper playback.</string>
     <string name="export_playlists">Export Playlists</string>

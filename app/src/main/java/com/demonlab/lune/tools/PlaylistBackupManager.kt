@@ -25,7 +25,8 @@ data class PlaylistData(
 data class SongMetadata(
     val title: String,
     val artist: String,
-    val duration: Long
+    val duration: Long,
+    val dateAdded: Long = 0
 )
 
 class PlaylistBackupManager(private val context: Context) {
@@ -43,7 +44,7 @@ class PlaylistBackupManager(private val context: Context) {
                 val songIds = database.playlistDao().getSongIdsForPlaylist(playlist.id)
                 val songsMetadata = songIds.mapNotNull { id ->
                     songsMap[id]?.let { song ->
-                        SongMetadata(song.title, song.artist, song.duration)
+                        SongMetadata(song.title, song.artist, song.duration, song.dateAdded)
                     }
                 }
                 PlaylistData(playlist.name, songsMetadata)
