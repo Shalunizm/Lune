@@ -271,28 +271,7 @@ fun SettingsScreen(
                     }
                 )
 
-                SettingsPreferenceItem(
-                    headlineText = stringResource(R.string.cinematic_player),
-                    supportingText = stringResource(R.string.cinematic_player_desc),
-                    icon = Icons.Default.AutoAwesome,
-                    position = SectionPosition.MIDDLE,
-                    trailingContent = {
-                        Switch(
-                            checked = isCinematicEnabled,
-                            onCheckedChange = {
-                                isCinematicEnabled = it
-                                settingsManager.isCinematicPlayerEnabled = it
-                            },
-                            thumbContent = {
-                                Icon(
-                                    imageVector = if (isCinematicEnabled) Icons.Default.Check else Icons.Default.Close,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    }
-                )
+
                 SettingsPreferenceItem(
                     headlineText = stringResource(R.string.customization),
                     supportingText = stringResource(R.string.customization_desc),

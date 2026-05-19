@@ -130,6 +130,10 @@ class SettingsManager(context: Context) {
     var isCinematicPlayerEnabled: Boolean
         get() = prefs.getBoolean("is_cinematic_player_enabled", false)
         set(value) = prefs.edit().putBoolean("is_cinematic_player_enabled", value).apply()
+        
+    var isHapticVibrationEnabled: Boolean
+        get() = prefs.getBoolean("is_haptic_vibration_enabled", true)
+        set(value) = prefs.edit().putBoolean("is_haptic_vibration_enabled", value).apply()
 
     var dailyListeningTime: Long
         get() = prefs.getLong("daily_listening_time", 0L)

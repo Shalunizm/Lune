@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.demonlab.lune.R
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.AutoAwesome
 import com.demonlab.lune.tools.SettingsManager
 import com.demonlab.lune.ui.theme.LuneTheme
 
@@ -55,6 +56,8 @@ class CustomizationActivity : ComponentActivity() {
             var useCustomColors by remember { mutableStateOf(settingsManager.useCustomColors) }
             var customColorPalette by remember { mutableIntStateOf(settingsManager.customColorPalette) }
             var useAmoledPitchBlack by remember { mutableStateOf(settingsManager.useAmoledPitchBlack) }
+            var isHapticVibrationEnabled by remember { mutableStateOf(settingsManager.isHapticVibrationEnabled) }
+            var isCinematicEnabled by remember { mutableStateOf(settingsManager.isCinematicPlayerEnabled) }
 
             LuneTheme(
                 darkTheme = targetDarkTheme,
@@ -68,6 +71,8 @@ class CustomizationActivity : ComponentActivity() {
                     useCustomColors = useCustomColors,
                     customColorPalette = customColorPalette,
                     useAmoledPitchBlack = useAmoledPitchBlack,
+                    isHapticVibrationEnabled = isHapticVibrationEnabled,
+                    isCinematicEnabled = isCinematicEnabled,
                     onCustomColorsChanged = {
                         useCustomColors = it
                         settingsManager.useCustomColors = it
@@ -79,6 +84,14 @@ class CustomizationActivity : ComponentActivity() {
                     onAmoledChanged = {
                         useAmoledPitchBlack = it
                         settingsManager.useAmoledPitchBlack = it
+                    },
+                    onHapticChanged = {
+                        isHapticVibrationEnabled = it
+                        settingsManager.isHapticVibrationEnabled = it
+                    },
+                    onCinematicChanged = {
+                        isCinematicEnabled = it
+                        settingsManager.isCinematicPlayerEnabled = it
                     }
                 )
             }
@@ -94,9 +107,13 @@ fun CustomizationScreen(
     useCustomColors: Boolean,
     customColorPalette: Int,
     useAmoledPitchBlack: Boolean,
+    isHapticVibrationEnabled: Boolean,
+    isCinematicEnabled: Boolean,
     onCustomColorsChanged: (Boolean) -> Unit,
     onPaletteChanged: (Int) -> Unit,
-    onAmoledChanged: (Boolean) -> Unit
+    onAmoledChanged: (Boolean) -> Unit,
+    onHapticChanged: (Boolean) -> Unit,
+    onCinematicChanged: (Boolean) -> Unit
 ) {
     var showCustomTitleDialog by remember { mutableStateOf(false) }
     var customTitle by remember { mutableStateOf(settingsManager.customTitle) }
@@ -309,10 +326,50 @@ fun CustomizationScreen(
             val context = LocalContext.current
             SettingsSection(title = stringResource(R.string.media_player)) {
                 SettingsPreferenceItem(
+                    headlineText = stringResource(R.string.haptic_vibration),
+                    supportingText = stringResource(R.string.haptic_vibration_desc),
+                    icon = androidx.compose.material.icons.Icons.Default.PhoneAndroid,
+                    position = SectionPosition.FIRST,
+                    trailingContent = {
+                        Switch(
+                            checked = isHapticVibrationEnabled,
+                            onCheckedChange = onHapticChanged,
+                            thumbContent = {
+                                Icon(
+                                    imageVector = if (isHapticVibrationEnabled) Icons.Default.Check else Icons.Default.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    }
+                )
+
+                SettingsPreferenceItem(
+                    headlineText = stringResource(R.string.cinematic_player),
+                    supportingText = stringResource(R.string.cinematic_player_desc),
+                    icon = androidx.compose.material.icons.Icons.Default.AutoAwesome,
+                    position = SectionPosition.MIDDLE,
+                    trailingContent = {
+                        Switch(
+                            checked = isCinematicEnabled,
+                            onCheckedChange = onCinematicChanged,
+                            thumbContent = {
+                                Icon(
+                                    imageVector = if (isCinematicEnabled) Icons.Default.Check else Icons.Default.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    }
+                )
+
+                SettingsPreferenceItem(
                     headlineText = stringResource(R.string.cover_player),
                     supportingText = stringResource(R.string.cover_player_desc),
                     icon = Icons.Default.Album,
-                    position = SectionPosition.FIRST,
+                    position = SectionPosition.MIDDLE,
                     onClick = {
                         context.startActivity(Intent(context, CoverCustomizationActivity::class.java))
                     }

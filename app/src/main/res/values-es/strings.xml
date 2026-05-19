@@ -123,6 +123,8 @@
     <string name="amoled_pitch_black">Pantalla AMOLED (Negro puro)</string>
     <string name="amoled_pitch_black_desc">Usa fondo negro puro en el modo oscuro</string>
     <string name="media_player">Media Player</string>
+    <string name="haptic_vibration">Vibración óptica</string>
+    <string name="haptic_vibration_desc">Vibración ligera al usar los controles del reproductor</string>
     <string name="cover_player">Cover player</string>
     <string name="cover_player_desc">Personaliza la forma, tamaño y rotación de la carátula</string>
     <string name="shape_default">Por defecto</string>

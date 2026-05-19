@@ -123,6 +123,8 @@
     <string name="amoled_pitch_black">Tela AMOLED (Preto puro)</string>
     <string name="amoled_pitch_black_desc">Usa fundo preto puro no modo escuro</string>
     <string name="media_player">Player de Mídia</string>
+    <string name="haptic_vibration">Vibração tátil</string>
+    <string name="haptic_vibration_desc">Vibração sutil ao usar os controles do player</string>
     <string name="cover_player">Capa do player</string>
     <string name="cover_player_desc">Personalize a forma, o tamanho e a rotação da capa</string>
     <string name="shape_default">Padrão</string>

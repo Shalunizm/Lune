@@ -439,6 +439,15 @@ class Lune : AppCompatActivity() {
     }
 }
 
+fun android.os.Vibrator.triggerLightVibration() {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        this.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_TICK))
+    } else {
+        @Suppress("DEPRECATION")
+        this.vibrate(20)
+    }
+}
+
 @Composable
 fun ResponsiveText(
     text: String,
@@ -590,7 +599,12 @@ fun MainScreen(
         }
     }
 
+    val vibrator = LocalContext.current.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+
     val playNext = {
+        if (settingsManager.isHapticVibrationEnabled) {
+            vibrator.triggerLightVibration()
+        }
         playbackManager.playNextFromService()
         onCurrentSongChange(playbackManager.currentSong)
         onIsPlayingChange(playbackManager.isPlaying)
@@ -638,6 +652,9 @@ fun MainScreen(
     }
 
     val playPrevious = {
+        if (settingsManager.isHapticVibrationEnabled) {
+            vibrator.triggerLightVibration()
+        }
         playbackManager.playPreviousFromService()
         onCurrentSongChange(playbackManager.currentSong)
         onIsPlayingChange(playbackManager.isPlaying)
@@ -1038,6 +1055,9 @@ fun MainScreen(
                                                 isSortActive = playbackManager.sortOption != "ALPHABETICAL" || !playbackManager.isSortAscending,
                                                 onSortClick = { showSortSheet = true },
                                                 onPlayClick = {
+                                                    if (settingsManager.isHapticVibrationEnabled) {
+                                                        vibrator.triggerLightVibration()
+                                                    }
                                                     if (isCurrentListPlaying) {
                                                         if (isPlaying) playbackManager.pause() else playbackManager.resume()
                                                         onIsPlayingChange(!isPlaying)
@@ -1235,6 +1255,9 @@ fun MainScreen(
                     useCustomControlsColor = useCustomControlsColor,
                     controlsColorPalette = controlsColorPalette,
                     onTogglePlay = { 
+                        if (settingsManager.isHapticVibrationEnabled) {
+                            vibrator.triggerLightVibration()
+                        }
                         if (isPlaying) playbackManager.pause() else playbackManager.resume()
                         onIsPlayingChange(!isPlaying)
                     },
@@ -1262,8 +1285,11 @@ fun MainScreen(
                         playbackManager.seekTo(newProgress)
                     },
                     onTogglePlay = { 
+                        if (settingsManager.isHapticVibrationEnabled) {
+                            vibrator.triggerLightVibration()
+                        }
                         if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                    onIsPlayingChange(!isPlaying)
+                        onIsPlayingChange(!isPlaying)
                     },
                     onMinimize = { onIsPlayerExpandedChange(false) },
                     onNext = playNext,
@@ -4430,6 +4456,8 @@ fun PlaylistDetailView(
     viewModel: com.demonlab.lune.ui.viewmodels.MusicViewModel
 ) {
     val playbackManager = PlaybackManager.getInstance(LocalContext.current)
+    val settingsManager = SettingsManager.getInstance(LocalContext.current)
+    val vibrator = LocalContext.current.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
     val listState = rememberLazyListState()
     var showPlaylistOptions by remember { mutableStateOf(false) }
     var showAddSongsDialog by remember { mutableStateOf(false) }
@@ -4651,6 +4679,9 @@ fun PlaylistDetailView(
                                 
                                 Surface(
                                     onClick = { 
+                                        if (settingsManager.isHapticVibrationEnabled) {
+                                            vibrator.triggerLightVibration()
+                                        }
                                         if (isCurrentPlaylistPlaying) {
                                             if (isPlaying) playbackManager.pause() else playbackManager.resume()
                                         } else if (sortedSongs.isNotEmpty()) {
@@ -4784,6 +4815,8 @@ fun AlbumDetailView(
 ) {
     val context = LocalContext.current
     val playbackManager = PlaybackManager.getInstance(context)
+    val settingsManager = SettingsManager.getInstance(context)
+    val vibrator = context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
     val listState = rememberLazyListState()
     val isPlaying = playbackManager.isPlaying
     val sortedSongs = remember(album.songs, playbackManager.sortOption, playbackManager.isSortAscending) {
@@ -4990,6 +5023,9 @@ fun AlbumDetailView(
                                 
                                 Surface(
                                     onClick = { 
+                                        if (settingsManager.isHapticVibrationEnabled) {
+                                            vibrator.triggerLightVibration()
+                                        }
                                         if (isCurrentAlbumPlaying) {
                                             if (isPlaying) playbackManager.pause() else playbackManager.resume()
                                         } else if (sortedSongs.isNotEmpty()) {

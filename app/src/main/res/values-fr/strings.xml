@@ -123,6 +123,8 @@
     <string name="amoled_pitch_black">Écran AMOLED (Noir pur)</string>
     <string name="amoled_pitch_black_desc">Utilise un fond noir pur en mode sombre</string>
     <string name="media_player">Lecteur Multimédia</string>
+    <string name="haptic_vibration">Vibration haptique</string>
+    <string name="haptic_vibration_desc">Vibration subtile lors de l’utilisation des contrôles du lecteur</string>
     <string name="cover_player">Pochette du lecteur</string>
     <string name="cover_player_desc">Personnaliser la forme, la taille et la rotation de la pochette</string>
     <string name="shape_default">Par défaut</string>

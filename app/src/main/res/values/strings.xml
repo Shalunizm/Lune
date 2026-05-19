@@ -123,6 +123,8 @@
     <string name="amoled_pitch_black">AMOLED Pitch Black</string>
     <string name="amoled_pitch_black_desc">Use pitch black background in dark mode</string>
     <string name="media_player">Media Player</string>
+    <string name="haptic_vibration">Haptic Vibration</string>
+    <string name="haptic_vibration_desc">Subtle vibration when using player controls</string>
     <string name="cover_player">Cover player</string>
     <string name="cover_player_desc">Customize cover shape, size, and rotation</string>
     <string name="shape_default">Default</string>
