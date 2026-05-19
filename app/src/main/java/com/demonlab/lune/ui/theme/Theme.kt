@@ -90,6 +90,24 @@ private val WarmAmberDark = darkColorScheme(
 )
 
 @Composable
+fun getControlsPrimaryColor(
+    useCustomControlsColor: Boolean,
+    controlsColorPalette: Int,
+    darkTheme: Boolean = isSystemInDarkTheme()
+): Color {
+    if (!useCustomControlsColor) return MaterialTheme.colorScheme.onSurface
+    if (controlsColorPalette == 0) return MaterialTheme.colorScheme.primary
+    return when (controlsColorPalette) {
+        1 -> if (darkTheme) Color(0xFFFFB4AA) else Color(0xFFB04B38)
+        2 -> if (darkTheme) Color(0xFF9FD3B1) else Color(0xFF386B52)
+        3 -> if (darkTheme) Color(0xFF99CCEA) else Color(0xFF2E6580)
+        4 -> if (darkTheme) Color(0xFFD6BAFF) else Color(0xFF6E568F)
+        5 -> if (darkTheme) Color(0xFFFCBC43) else Color(0xFF7F5700)
+        else -> MaterialTheme.colorScheme.primary
+    }
+}
+
+@Composable
 fun LuneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,

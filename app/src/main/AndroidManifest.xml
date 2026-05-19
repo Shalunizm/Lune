@@ -61,7 +61,17 @@
         <activity
             android:name=".ui.activities.CustomizationActivity"
             android:exported="false"
-            android:label="@string/customization"
+            android:label="@string/general"
+            android:theme="@style/Theme.Lune" />
+        <activity
+            android:name=".ui.activities.CoverCustomizationActivity"
+            android:exported="false"
+            android:label="@string/cover_player"
+            android:theme="@style/Theme.Lune" />
+        <activity
+            android:name=".ui.activities.ControlsCustomizationActivity"
+            android:exported="false"
+            android:label="@string/controls_player"
             android:theme="@style/Theme.Lune" />
 
         <service

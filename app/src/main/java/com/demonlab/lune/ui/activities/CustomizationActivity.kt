@@ -17,8 +17,11 @@ import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import android.content.Intent
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -182,7 +186,7 @@ fun CustomizationScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            SettingsSection(title = stringResource(R.string.customization)) {
+            SettingsSection(title = stringResource(R.string.general)) {
                 SettingsPreferenceItem(
                     headlineText = stringResource(R.string.custom_title),
                     supportingText = if (customTitle.isEmpty()) "Lune" else customTitle,
@@ -297,6 +301,29 @@ fun CustomizationScreen(
                                 )
                             }
                         )
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            val context = LocalContext.current
+            SettingsSection(title = stringResource(R.string.media_player)) {
+                SettingsPreferenceItem(
+                    headlineText = stringResource(R.string.cover_player),
+                    supportingText = stringResource(R.string.cover_player_desc),
+                    icon = Icons.Default.Album,
+                    position = SectionPosition.FIRST,
+                    onClick = {
+                        context.startActivity(Intent(context, CoverCustomizationActivity::class.java))
+                    }
+                )
+                SettingsPreferenceItem(
+                    headlineText = stringResource(R.string.controls_player),
+                    supportingText = stringResource(R.string.controls_player_desc),
+                    icon = Icons.Default.PlayArrow,
+                    position = SectionPosition.LAST,
+                    onClick = {
+                        context.startActivity(Intent(context, ControlsCustomizationActivity::class.java))
                     }
                 )
             }

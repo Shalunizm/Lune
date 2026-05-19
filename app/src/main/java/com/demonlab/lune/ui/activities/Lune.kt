@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.demonlab.lune.ui.viewmodels.MusicViewModel
 import com.demonlab.lune.data.Playlist
 import com.demonlab.lune.tools.*
+import com.demonlab.lune.ui.components.FastScrollbar
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -33,6 +34,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.demonlab.lune.R
+import com.demonlab.lune.ui.theme.getControlsPrimaryColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -92,6 +94,7 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
@@ -239,6 +242,16 @@ class Lune : AppCompatActivity() {
             var isPlayerExpanded by rememberSaveable { mutableStateOf(false) }
             var playbackProgress by remember { mutableStateOf(playbackManager.getProgress()) }
 
+            var coverShape by remember { mutableIntStateOf(settingsManager.coverShape) }
+            var coverScale by remember { mutableFloatStateOf(settingsManager.coverScale) }
+            var coverSpin by remember { mutableStateOf(settingsManager.coverSpin) }
+            var coverVinylEffect by remember { mutableStateOf(settingsManager.coverVinylEffect) }
+
+            var controlsIconStyle by remember { mutableIntStateOf(settingsManager.controlsIconStyle) }
+            var isControlsFilled by remember { mutableStateOf(settingsManager.isControlsFilled) }
+            var useCustomControlsColor by remember { mutableStateOf(settingsManager.useCustomControlsColor) }
+            var controlsColorPalette by remember { mutableIntStateOf(settingsManager.controlsColorPalette) }
+
             LaunchedEffect(currentSong, isPlayerExpanded) {
                 if (currentSong == null && isPlayerExpanded) {
                     isPlayerExpanded = false
@@ -294,6 +307,14 @@ class Lune : AppCompatActivity() {
                         useCustomColors = settingsManager.useCustomColors
                         customColorPalette = settingsManager.customColorPalette
                         useAmoledPitchBlack = settingsManager.useAmoledPitchBlack
+                        coverShape = settingsManager.coverShape
+                        coverScale = settingsManager.coverScale
+                        coverSpin = settingsManager.coverSpin
+                        coverVinylEffect = settingsManager.coverVinylEffect
+                        controlsIconStyle = settingsManager.controlsIconStyle
+                        isControlsFilled = settingsManager.isControlsFilled
+                        useCustomControlsColor = settingsManager.useCustomControlsColor
+                        controlsColorPalette = settingsManager.controlsColorPalette
                         if (hasPermission) {
                             musicViewModel.loadSongs()
                             musicViewModel.loadPlaylists()
@@ -402,6 +423,14 @@ class Lune : AppCompatActivity() {
                     onRefreshSongs = { musicViewModel.loadSongs() },
                     musicViewModel = musicViewModel,
                     settingsManager = settingsManager,
+                    coverShape = coverShape,
+                    coverScale = coverScale,
+                    coverSpin = coverSpin,
+                    coverVinylEffect = coverVinylEffect,
+                    controlsIconStyle = controlsIconStyle,
+                    isControlsFilled = isControlsFilled,
+                    useCustomControlsColor = useCustomControlsColor,
+                    controlsColorPalette = controlsColorPalette,
                     onRequestAudioPermission = { recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO) }
                 )
 
@@ -470,6 +499,14 @@ fun MainScreen(
     onRefreshSongs: () -> Unit,
     musicViewModel: com.demonlab.lune.ui.viewmodels.MusicViewModel,
     settingsManager: SettingsManager,
+    coverShape: Int,
+    coverScale: Float,
+    coverSpin: Boolean,
+    coverVinylEffect: Boolean,
+    controlsIconStyle: Int,
+    isControlsFilled: Boolean,
+    useCustomControlsColor: Boolean,
+    controlsColorPalette: Int,
     onRequestAudioPermission: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1065,6 +1102,16 @@ fun MainScreen(
                                         .align(Alignment.BottomCenter)
                                         .padding(bottom = bottomPadding + 16.dp)
                                 )
+                                
+                                FastScrollbar(
+                                    listState = mainListState,
+                                    items = sortedSongs,
+                                    headerItemCount = if (showSimplifiedHeader) 1 else 0,
+                                    itemKeyOrLetter = { if (playbackManager.sortOption == "ALPHABETICAL") it.title else "" },
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(bottom = bottomPadding)
+                                )
                             }
                         }
                     }
@@ -1179,6 +1226,14 @@ fun MainScreen(
                     showWaveform = playbackManager.isMiniPlayerVisualizerEnabled,
                     visualizerData = visualizerData,
                     currentOutputIcon = playbackManager.currentOutputIcon,
+                    coverShape = coverShape,
+                    coverScale = coverScale,
+                    coverSpin = coverSpin,
+                    coverVinylEffect = coverVinylEffect,
+                    controlsIconStyle = controlsIconStyle,
+                    isControlsFilled = isControlsFilled,
+                    useCustomControlsColor = useCustomControlsColor,
+                    controlsColorPalette = controlsColorPalette,
                     onTogglePlay = { 
                         if (isPlaying) playbackManager.pause() else playbackManager.resume()
                         onIsPlayingChange(!isPlaying)
@@ -1217,6 +1272,14 @@ fun MainScreen(
                     showWaveform = playbackManager.isFullPlayerVisualizerEnabled,
                     onToggleWaveform = {}, // Not used anymore as we have settings sheet
                     visualizerData = visualizerData,
+                    coverShape = coverShape,
+                    coverScale = coverScale,
+                    coverSpin = coverSpin,
+                    coverVinylEffect = coverVinylEffect,
+                    controlsIconStyle = controlsIconStyle,
+                    isControlsFilled = isControlsFilled,
+                    useCustomControlsColor = useCustomControlsColor,
+                    controlsColorPalette = controlsColorPalette,
                     onShowLyrics = {
                         val intent = Intent(context, LyricsActivity::class.java)
                         context.startActivity(intent)
@@ -2248,6 +2311,14 @@ fun FullPlayer(
     showWaveform: Boolean,
     onToggleWaveform: () -> Unit,
     visualizerData: FloatArray,
+    coverShape: Int,
+    coverScale: Float,
+    coverSpin: Boolean,
+    coverVinylEffect: Boolean,
+    controlsIconStyle: Int,
+    isControlsFilled: Boolean,
+    useCustomControlsColor: Boolean,
+    controlsColorPalette: Int,
     onShowLyrics: () -> Unit,
     onRequestAudioPermission: () -> Unit
 ) {
@@ -2303,7 +2374,6 @@ fun FullPlayer(
     val fullHeightPx = with(density) { sheetFullHeight.toPx() }
     
 
-
     val infiniteTransition = rememberInfiniteTransition(label = "CoverAnimation")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1.2f,
@@ -2354,6 +2424,17 @@ fun FullPlayer(
         2 -> true
         else -> isSystemDark
     }
+
+    val infiniteSpinTransition = rememberInfiniteTransition(label = "PlayerCoverSpin")
+    val spinRotation by infiniteSpinTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(12000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "SpinAnimation"
+    )
 
     Box(
         modifier = Modifier
@@ -2444,19 +2525,41 @@ fun FullPlayer(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Classic Cover Art
-                Surface(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(28.dp)),
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                        .scale(coverScale),
+                    contentAlignment = Alignment.Center
                 ) {
-                    AsyncImage(
-                        model = song.coverUrl ?: song.albumArtUri,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    if (coverShape == 2 && coverVinylEffect) {
+                        VinylRecordAsyncCover(
+                            model = song.coverUrl ?: song.albumArtUri,
+                            rotation = if (coverSpin && isPlaying) spinRotation else 0f,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        val activeShape = when (coverShape) {
+                            1 -> RoundedCornerShape(0.dp)
+                            2 -> CircleShape
+                            else -> RoundedCornerShape(28.dp)
+                        }
+                        Surface(
+                            shape = activeShape,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .rotate(if (coverShape == 2 && coverSpin && isPlaying) spinRotation else 0f),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            tonalElevation = 8.dp
+                        ) {
+                            AsyncImage(
+                                model = song.coverUrl ?: song.albumArtUri,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                 }
             }
 
@@ -2625,6 +2728,18 @@ fun FullPlayer(
                 }
             }
 
+            val activePrimary = getControlsPrimaryColor(useCustomControlsColor, controlsColorPalette)
+            val activeContainerColor = if (useCustomControlsColor) {
+                activePrimary.copy(alpha = 0.2f)
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            }
+            val activeIconTint = if (useCustomControlsColor) {
+                activePrimary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -2633,15 +2748,16 @@ fun FullPlayer(
                 Surface(
                     onClick = onPrevious,
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    color = activeContainerColor,
                     modifier = Modifier.size(64.dp).bounceClick()
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Outlined.SkipPrevious, 
-                            contentDescription = stringResource(R.string.cd_previous), 
-                            modifier = Modifier.size(36.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                        ReusableSkipIcon(
+                            isNext = false,
+                            controlsIconStyle = controlsIconStyle,
+                            isControlsFilled = isControlsFilled,
+                            tint = activeIconTint,
+                            modifier = Modifier.size(36.dp)
                         )
                     }
                 }
@@ -2667,15 +2783,16 @@ fun FullPlayer(
                 Surface(
                     onClick = onNext,
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    color = activeContainerColor,
                     modifier = Modifier.size(64.dp).bounceClick()
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Outlined.SkipNext, 
-                            contentDescription = stringResource(R.string.cd_next), 
-                            modifier = Modifier.size(36.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                        ReusableSkipIcon(
+                            isNext = true,
+                            controlsIconStyle = controlsIconStyle,
+                            isControlsFilled = isControlsFilled,
+                            tint = activeIconTint,
+                            modifier = Modifier.size(36.dp)
                         )
                     }
                 }
@@ -3384,11 +3501,30 @@ fun MiniPlayer(
     showWaveform: Boolean,
     visualizerData: FloatArray,
     currentOutputIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    coverShape: Int,
+    coverScale: Float,
+    coverSpin: Boolean,
+    coverVinylEffect: Boolean,
+    controlsIconStyle: Int,
+    isControlsFilled: Boolean,
+    useCustomControlsColor: Boolean,
+    controlsColorPalette: Int,
     onTogglePlay: () -> Unit,
     onExpand: () -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit
 ) {
+    val infiniteSpinTransition = rememberInfiniteTransition(label = "MiniPlayerSpin")
+    val spinRotation by infiniteSpinTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(12000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "SpinAnimation"
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -3413,17 +3549,39 @@ fun MiniPlayer(
                 .fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.size(48.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .scale(coverScale),
+                contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (coverShape == 2 && coverVinylEffect) {
+                    VinylRecordAsyncCover(
+                        model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
+                        rotation = if (coverSpin && isPlaying) spinRotation else 0f,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    val activeShape = when (coverShape) {
+                        1 -> RoundedCornerShape(0.dp)
+                        2 -> CircleShape
+                        else -> RoundedCornerShape(8.dp)
+                    }
+                    Surface(
+                        shape = activeShape,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .rotate(if (coverShape == 2 && coverSpin && isPlaying) spinRotation else 0f),
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        AsyncImage(
+                            model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -3455,17 +3613,30 @@ fun MiniPlayer(
                 }
             }
 
+            val activePrimary = getControlsPrimaryColor(useCustomControlsColor, controlsColorPalette)
+            val activeContainerColor = if (useCustomControlsColor) {
+                activePrimary.copy(alpha = 0.25f)
+            } else {
+                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+            }
+            val activeIconTint = if (useCustomControlsColor) {
+                activePrimary
+            } else {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            }
+
             IconButton(onClick = onPrevious) {
                 Surface(
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
+                    color = activeContainerColor,
                     modifier = Modifier.size(36.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.SkipPrevious,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ReusableSkipIcon(
+                            isNext = false,
+                            controlsIconStyle = controlsIconStyle,
+                            isControlsFilled = isControlsFilled,
+                            tint = activeIconTint,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -3492,14 +3663,15 @@ fun MiniPlayer(
             IconButton(onClick = onNext) {
                 Surface(
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
+                    color = activeContainerColor,
                     modifier = Modifier.size(36.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.SkipNext,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ReusableSkipIcon(
+                            isNext = true,
+                            controlsIconStyle = controlsIconStyle,
+                            isControlsFilled = isControlsFilled,
+                            tint = activeIconTint,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -4587,6 +4759,16 @@ fun PlaylistDetailView(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = bottomPadding + 16.dp)
         )
+        
+        FastScrollbar(
+            listState = listState,
+            items = sortedSongs,
+            headerItemCount = 1,
+            itemKeyOrLetter = { if (playbackManager.sortOption == "ALPHABETICAL") it.title else "" },
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(bottom = bottomPadding)
+        )
     }
 }
 
@@ -4874,6 +5056,16 @@ fun AlbumDetailView(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = bottomPadding + 16.dp)
+        )
+        
+        FastScrollbar(
+            listState = listState,
+            items = sortedSongs,
+            headerItemCount = 1,
+            itemKeyOrLetter = { if (playbackManager.sortOption == "ALPHABETICAL") it.title else "" },
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(bottom = bottomPadding)
         )
     }
 }
@@ -5572,4 +5764,95 @@ fun Modifier.bounceClick(scaleDown: Float = 0.85f): Modifier = composed {
                 isPressed = false
             }
         }
+}
+
+@Composable
+fun VinylRecordAsyncCover(
+    model: Any?,
+    rotation: Float,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .rotate(rotation)
+            .clip(CircleShape)
+            .background(Color(0xFF101010)),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(modifier = Modifier.fillMaxSize(0.9f).border(1.dp, Color.White.copy(alpha = 0.08f), CircleShape))
+        Box(modifier = Modifier.fillMaxSize(0.8f).border(1.dp, Color.White.copy(alpha = 0.05f), CircleShape))
+        Box(modifier = Modifier.fillMaxSize(0.7f).border(1.dp, Color.White.copy(alpha = 0.08f), CircleShape))
+        Box(modifier = Modifier.fillMaxSize(0.6f).border(1.dp, Color.White.copy(alpha = 0.05f), CircleShape))
+
+        Surface(
+            shape = CircleShape,
+            modifier = Modifier.fillMaxSize(0.55f),
+            border = BorderStroke(2.dp, Color(0xFF202020))
+        ) {
+            AsyncImage(
+                model = model,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF101010))
+                .border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+        )
+    }
+}
+
+@Composable
+fun ReusableSkipIcon(
+    isNext: Boolean,
+    controlsIconStyle: Int,
+    isControlsFilled: Boolean,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    val visualOffset = if (controlsIconStyle > 0) {
+        if (isNext) 2.dp else (-2).dp
+    } else 0.dp
+    val flipModifier = if (!isNext && controlsIconStyle > 0) Modifier.scale(scaleX = -1f, scaleY = 1f) else Modifier
+    val combinedModifier = modifier.offset(x = visualOffset).then(flipModifier)
+
+    when (controlsIconStyle) {
+        1 -> {
+            val res = if (isControlsFilled) R.drawable.play_2_filled else R.drawable.play_2
+            Icon(
+                painter = painterResource(res),
+                contentDescription = null,
+                tint = tint,
+                modifier = combinedModifier
+            )
+        }
+        2 -> {
+            val res = if (isControlsFilled) R.drawable.play_3_filled else R.drawable.play_3
+            Icon(
+                painter = painterResource(res),
+                contentDescription = null,
+                tint = tint,
+                modifier = combinedModifier
+            )
+        }
+        else -> {
+            val vector = if (isControlsFilled) {
+                if (isNext) Icons.Default.SkipNext else Icons.Default.SkipPrevious
+            } else {
+                if (isNext) Icons.Outlined.SkipNext else Icons.Outlined.SkipPrevious
+            }
+            Icon(
+                imageVector = vector,
+                contentDescription = null,
+                tint = tint,
+                modifier = modifier
+            )
+        }
+    }
 }

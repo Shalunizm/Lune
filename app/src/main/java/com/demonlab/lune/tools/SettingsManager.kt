@@ -159,6 +159,38 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("use_amoled_pitch_black", false)
         set(value) = prefs.edit().putBoolean("use_amoled_pitch_black", value).apply()
 
+    var coverShape: Int
+        get() = prefs.getInt("cover_shape", 0)
+        set(value) = prefs.edit().putInt("cover_shape", value).apply()
+
+    var coverScale: Float
+        get() = prefs.getFloat("cover_scale", 1.0f)
+        set(value) = prefs.edit().putFloat("cover_scale", value).apply()
+
+    var coverSpin: Boolean
+        get() = prefs.getBoolean("cover_spin", true)
+        set(value) = prefs.edit().putBoolean("cover_spin", value).apply()
+
+    var coverVinylEffect: Boolean
+        get() = prefs.getBoolean("cover_vinyl_effect", false)
+        set(value) = prefs.edit().putBoolean("cover_vinyl_effect", value).apply()
+
+    var controlsIconStyle: Int
+        get() = prefs.getInt("controls_icon_style", 0) // 0: Default Android, 1: play_2, 2: play_3
+        set(value) = prefs.edit().putInt("controls_icon_style", value).apply()
+
+    var isControlsFilled: Boolean
+        get() = prefs.getBoolean("is_controls_filled", false)
+        set(value) = prefs.edit().putBoolean("is_controls_filled", value).apply()
+
+    var useCustomControlsColor: Boolean
+        get() = prefs.getBoolean("use_custom_controls_color", false)
+        set(value) = prefs.edit().putBoolean("use_custom_controls_color", value).apply()
+
+    var controlsColorPalette: Int
+        get() = prefs.getInt("controls_color_palette", 0) // 0: Material You/App default, 1: Sunset Peach, 2: Sage Green, etc.
+        set(value) = prefs.edit().putInt("controls_color_palette", value).apply()
+
     fun getPlaylistShuffle(playlistId: Long): Boolean {
         return prefs.getBoolean("shuffle_playlist_$playlistId", false)
     }
