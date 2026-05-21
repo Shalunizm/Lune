@@ -174,6 +174,13 @@
     <string name="creator_desc">Créateur et mainteneur du lecteur Lune Music</string>
     <string name="github">GitHub</string>
     <string name="donation">Don</string>
+    <string name="gesture">Gestes</string>
+    <string name="gesture_desc">Configuration des gestes</string>
+    <string name="enable_gestures">Activer les gestes</string>
+    <string name="enable_gestures_desc">Active les gestes dans le lecteur</string>
+    <string name="change_gesture">Changer le geste</string>
+    <string name="change_gesture_desc">Changer le geste vers le haut</string>
+    <string name="other">Autres</string>
 
     <!-- Users -->
     <string name="demon">MrDemonc</string>

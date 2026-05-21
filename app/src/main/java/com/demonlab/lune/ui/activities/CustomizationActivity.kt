@@ -38,6 +38,8 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.AutoAwesome
 import com.demonlab.lune.tools.SettingsManager
 import com.demonlab.lune.ui.theme.LuneTheme
+import android.widget.Toast
+import androidx.compose.material.icons.filled.Gesture
 
 class CustomizationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -383,6 +385,19 @@ fun CustomizationScreen(
                         context.startActivity(Intent(context, ControlsCustomizationActivity::class.java))
                     }
                 )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            SettingsSection(title = stringResource(R.string.other)) {
+                SettingsPreferenceItem(
+                    headlineText = stringResource(R.string.gesture),
+                    supportingText = stringResource(R.string.gesture_desc),
+                    icon = Icons.Default.Gesture,
+                    position = SectionPosition.SINGLE,
+                    onClick = {
+                        context.startActivity(Intent(context, GestureCustomizationActivity::class.java))
+                    }
+                )
+
             }
         }
     }

@@ -173,7 +173,14 @@
     <string name="credits_desc">Pruebas, sugerencias de diseño y logo</string>
     <string name="creator_desc">Creador y mantenedor de lune music player</string>
     <string name="github">GitHub</string>
-    <string name="donation">Donation</string>
+    <string name="donation">Donacion</string>
+    <string name="gesture">Gestos</string>
+    <string name="gesture_desc">Configuracion de gestos</string>
+    <string name="enable_gestures">Activar gestos</string>
+    <string name="enable_gestures_desc">Activa los gestos en el reproductor</string>
+    <string name="change_gesture">Cambiar gesto</string>
+    <string name="change_gesture_desc">Cambiar gesto hacia arriba</string>
+    <string name="other">Otros</string>
 
     <!-- Users -->
     <string name="demon">MrDemonc</string>

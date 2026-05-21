@@ -175,6 +175,13 @@
     <string name="creator_desc">Creator and maintainer of lune music player</string>
     <string name="github">GitHub</string>
     <string name="donation">Donación</string>
+    <string name="gesture">Gesture</string>
+    <string name="gesture_desc">Customize the app gestures</string>
+    <string name="enable_gestures">Enable gestures</string>
+    <string name="enable_gestures_desc">Activate gesture controls in player</string>
+    <string name="change_gesture">Change gesture</string>
+    <string name="change_gesture_desc">Change swipe up gesture</string>
+    <string name="other">Other</string>
 
     <!-- Users -->
     <string name="demon">MrDemonc</string>

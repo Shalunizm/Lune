@@ -74,6 +74,11 @@
             android:exported="false"
             android:label="@string/controls_player"
             android:theme="@style/Theme.Lune" />
+        <activity
+            android:name=".ui.activities.GestureCustomizationActivity"
+            android:exported="false"
+            android:label="@string/gesture"
+            android:theme="@style/Theme.Lune" />
 
         <service
             android:name=".tools.MusicService"
