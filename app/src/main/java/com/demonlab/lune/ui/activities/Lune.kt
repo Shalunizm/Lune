@@ -2790,29 +2790,21 @@ fun FullPlayer(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
-                    var totalDragX = 0f
                     var totalDragY = 0f
                     var gestureConsumed = false
                     detectDragGestures(
                         onDragStart = {
-                            totalDragX = 0f
                             totalDragY = 0f
                             gestureConsumed = false
                         },
                         onDrag = { _, dragAmount ->
                             if (!gestureConsumed) {
-                                totalDragX += dragAmount.x
                                 totalDragY += dragAmount.y
-                                val absX = kotlin.math.abs(totalDragX)
                                 val absY = kotlin.math.abs(totalDragY)
-                                // Require at least 60px of drag and a dominant direction
-                                if (absX > 60 && absX > absY * 1.5f) {
-                                    // Horizontal swipe
-                                    if (totalDragX < 0) onNext() else onPrevious()
-                                    gestureConsumed = true
-                                } else if (absY > 60 && absY > absX * 1.5f) {
-                                    // Vertical swipe (downward only)
-                                    if (totalDragY > 0) onMinimize()
+                                val absX = kotlin.math.abs(dragAmount.x)
+                                // Vertical swipe downward only → minimize
+                                if (absY > 60 && absY > absX * 1.5f && totalDragY > 0) {
+                                    onMinimize()
                                     gestureConsumed = true
                                 }
                             }
@@ -2842,7 +2834,29 @@ fun FullPlayer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .scale(coverScale),
+                        .scale(coverScale)
+                        .pointerInput(Unit) {
+                            var totalDragX = 0f
+                            var gestureConsumed = false
+                            detectDragGestures(
+                                onDragStart = {
+                                    totalDragX = 0f
+                                    gestureConsumed = false
+                                },
+                                onDrag = { _, dragAmount ->
+                                    if (!gestureConsumed) {
+                                        totalDragX += dragAmount.x
+                                        val absX = kotlin.math.abs(totalDragX)
+                                        val absY = kotlin.math.abs(dragAmount.y)
+                                        // Horizontal swipe only (covers next/previous)
+                                        if (absX > 60 && absX > absY * 1.5f) {
+                                            if (totalDragX < 0) onNext() else onPrevious()
+                                            gestureConsumed = true
+                                        }
+                                    }
+                                }
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     if (coverShape == 2 && coverVinylEffect) {
