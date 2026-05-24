@@ -50,6 +50,21 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         val synced = musicProvider.syncSongs()
         
         if (synced.isNotEmpty()) {
+            val settingsManager = SettingsManager.getInstance(getApplication())
+            if (settingsManager.isInitialFolderScanPending) {
+                val uriStr = settingsManager.musicFolderUri
+                if (uriStr != null) {
+                    val uri = android.net.Uri.parse(uriStr)
+                    val targetFolder = uri.lastPathSegment?.substringAfterLast("/")?.substringAfterLast(":")
+                    if (targetFolder != null) {
+                        val allFolderNames = synced.map { it.folderName }.toSet()
+                        val foldersToHide = allFolderNames.filter { it != targetFolder }.toSet()
+                        settingsManager.hiddenFolders = foldersToHide
+                    }
+                }
+                settingsManager.isInitialFolderScanPending = false
+            }
+            
             if (synced != allSongs) {
                 allSongs = synced
             }

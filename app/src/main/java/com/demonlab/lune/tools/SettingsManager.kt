@@ -158,6 +158,10 @@ class SettingsManager(context: Context) {
     var musicFolderUri: String?
         get() = prefs.getString("music_folder_uri", null)
         set(value) = prefs.edit().putString("music_folder_uri", value).apply()
+        
+    var isInitialFolderScanPending: Boolean
+        get() = prefs.getBoolean("is_initial_folder_scan_pending", false)
+        set(value) = prefs.edit().putBoolean("is_initial_folder_scan_pending", value).apply()
 
     var useCustomColors: Boolean
         get() = prefs.getBoolean("use_custom_colors", false)

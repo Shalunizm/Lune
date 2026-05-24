@@ -250,6 +250,11 @@ class Lune : AppCompatActivity() {
             var showFolderSheet by remember { mutableStateOf(false) }
             val hiddenFolders = remember { mutableStateOf(settingsManager.hiddenFolders) }
             
+            // Sync hidden folders when songs update (e.g. initial scan)
+            LaunchedEffect(rawAllSongs) {
+                hiddenFolders.value = settingsManager.hiddenFolders
+            }
+            
             val currentSong = playbackManager.currentSong
             val isPlaying = playbackManager.isPlaying
             var isPlayerExpanded by rememberSaveable { mutableStateOf(false) }
@@ -2171,6 +2176,7 @@ fun FolderFilterContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 32.dp)
+            .verticalScroll(androidx.compose.foundation.rememberScrollState())
     ) {
         Text(
             stringResource(R.string.filter_folders),
