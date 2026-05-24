@@ -286,4 +286,11 @@
     <string name="onboarding_reminder_desc">Si omitiste algún permiso, puedes activarlo fácilmente más tarde en Ajustes > Seguridad > Permisos.</string>
     <string name="onboarding_reminder_button">Entendido</string>
     <string name="option_speed">Velocidad</string>
+
+    <!-- Donate -->
+    <string name="donate_title">Apoya el Proyecto</string>
+    <string name="paypal">PayPal</string>
+    <string name="monero">Monero</string>
+    <string name="copied">Copiado al portapapeles</string>
+    <string name="close">Cerrar</string>
 </resources>

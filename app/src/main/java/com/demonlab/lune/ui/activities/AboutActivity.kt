@@ -1,10 +1,14 @@
 package com.demonlab.lune.ui.activities
 
 import android.R.attr.icon
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,8 +20,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -83,6 +89,7 @@ class AboutActivity : ComponentActivity() {
 fun AboutScreen() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    var showDonateDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -202,9 +209,7 @@ fun AboutScreen() {
                     )
                 }
                 Button(
-                    onClick = { 
-                        uriHandler.openUri("https://paypal.me/TommyZambrano")
-                    },
+                    onClick = { showDonateDialog = true },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -218,6 +223,12 @@ fun AboutScreen() {
                         text = "Donate"
                     )
                 }
+            }
+
+            if (showDonateDialog) {
+                DonateDialog(
+                    onDismiss = { showDonateDialog = false }
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -360,4 +371,104 @@ fun AboutScreen() {
 @Composable
 fun MaterialTheme.secondary濃(alpha: Float): Color {
     return colorScheme.secondary.copy(alpha = alpha)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DonateDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var showMonero by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(28.dp),
+        title = {
+            Text(
+                text = stringResource(R.string.donate_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { uriHandler.openUri("https://paypal.me/TommyZambrano") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.LocalCafe,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.paypal))
+                }
+
+                Button(
+                    onClick = { showMonero = !showMonero },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MonetizationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.monero))
+                }
+
+                if (showMonero) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.monero_address),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("Monero Address", context.getString(R.string.monero_address))
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ContentCopy,
+                                    contentDescription = stringResource(R.string.copied),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        }
+    )
 }

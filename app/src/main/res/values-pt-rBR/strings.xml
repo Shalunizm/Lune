@@ -285,4 +285,12 @@
     <string name="onboarding_reminder_desc">Se você pulou alguma permissão, pode ativá-la facilmente mais tarde em Configurações > Segurança > Permissões.</string>
     <string name="onboarding_reminder_button">Entendido</string>
     <string name="option_share">Compartilhar</string>
+    <string name="option_speed">Velocidade</string>
+
+    <!-- Donate -->
+    <string name="donate_title">Apoie o Projeto</string>
+    <string name="paypal">PayPal</string>
+    <string name="monero">Monero</string>
+    <string name="copied">Copiado para a área de transferência</string>
+    <string name="close">Fechar</string>
 </resources>

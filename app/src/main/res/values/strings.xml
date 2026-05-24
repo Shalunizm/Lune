@@ -287,4 +287,12 @@
     <string name="onboarding_reminder_desc">If you skipped any permission, you can easily enable it later in Settings > Security > Permissions.</string>
     <string name="onboarding_reminder_button">Got it</string>
     <string name="option_speed">Speed</string>
+
+    <!-- Donate -->
+    <string name="donate_title">Support the Project</string>
+    <string name="paypal">PayPal</string>
+    <string name="monero">Monero</string>
+    <string name="monero_address">88s5Re4p6a3P9TtqaG1G2Yeq5Ppp1w1npXebyLjktuxYgurFAGn4GRbKuPKGbx1pD1bBwohtAriL7JqB12ECp4SnMN1T3q9</string>
+    <string name="copied">Copied to clipboard</string>
+    <string name="close">Close</string>
 </resources>
