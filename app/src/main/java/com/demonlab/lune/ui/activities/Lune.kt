@@ -4394,7 +4394,7 @@ fun PlaylistPreviewCovers(
     size: Dp = 56.dp
 ) {
     var covers by remember { mutableStateOf<List<String?>>(emptyList()) }
-    LaunchedEffect(playlistId) {
+    LaunchedEffect(playlistId, viewModel.playlistMappings) {
         viewModel.getPlaylistPreviewCovers(playlistId) { 
             covers = it
         }
@@ -4515,7 +4515,7 @@ fun PlaylistListScreen(
             var songCount by remember { mutableIntStateOf(0) }
             var totalDuration by remember { mutableLongStateOf(0L) }
             
-            LaunchedEffect(playlist.id, viewModel.filteredSongs) {
+            LaunchedEffect(playlist.id, viewModel.filteredSongs, viewModel.playlistMappings) {
                 viewModel.getPlaylistInfo(playlist.id) { count, duration ->
                     songCount = count
                     totalDuration = duration
