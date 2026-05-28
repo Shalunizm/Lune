@@ -2825,6 +2825,8 @@ fun FullPlayer(
                 ImageRequest.Builder(context)
                     .data(song.coverUrl ?: song.albumArtUri)
                     .crossfade(true)
+                    .fallback(R.drawable.ic_artwork_fallback)
+                    .error(R.drawable.ic_artwork_fallback)
                     .build()
             }
             AsyncImage(
@@ -2861,6 +2863,8 @@ fun FullPlayer(
                 ImageRequest.Builder(context)
                     .data(song.coverUrl ?: song.albumArtUri)
                     .crossfade(true)
+                    .fallback(R.drawable.ic_artwork_fallback)
+                    .error(R.drawable.ic_artwork_fallback)
                     .build()
             }
             AsyncImage(
@@ -2905,6 +2909,8 @@ fun FullPlayer(
                         ImageRequest.Builder(context)
                             .data(song.coverUrl ?: song.albumArtUri)
                             .crossfade(true)
+                            .fallback(R.drawable.ic_artwork_fallback)
+                            .error(R.drawable.ic_artwork_fallback)
                             .build()
                     }
                     AsyncImage(
