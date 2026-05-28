@@ -1335,6 +1335,14 @@ fun MainScreen(
         ) {
             val song = currentSong
             if (song != null) {
+                val isDarkThemeMini = when (themeMode) {
+                    1 -> false
+                    2 -> true
+                    else -> isSystemInDarkTheme()
+                }
+                val hasBlurBackgroundMini = settingsManager.isBlurEnabled &&
+                    (if (isDarkThemeMini) settingsManager.isBlurDarkMode else settingsManager.isBlurLightMode)
+
                 MiniPlayer(
                     song = song,
                     isPlaying = isPlaying,
@@ -1350,6 +1358,8 @@ fun MainScreen(
                     useCustomControlsColor = useCustomControlsColor,
                     controlsColorPalette = controlsColorPalette,
                     shape = miniPlayerShape,
+                    hasBlurBackground = hasBlurBackgroundMini,
+                    isDarkTheme = isDarkThemeMini,
                     onTogglePlay = { 
                         if (settingsManager.isHapticVibrationEnabled) {
                             vibrator.triggerLightVibration()
@@ -4106,6 +4116,8 @@ fun MiniPlayer(
     useCustomControlsColor: Boolean,
     controlsColorPalette: Int,
     shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+    hasBlurBackground: Boolean = false,
+    isDarkTheme: Boolean = false,
     onTogglePlay: () -> Unit,
     onExpand: () -> Unit,
     onPrevious: () -> Unit,
@@ -4122,156 +4134,188 @@ fun MiniPlayer(
         label = "SpinAnimation"
     )
 
+    val blurContainerColorMini = if (isDarkTheme) Color.Black.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.4f)
+    val blurPlayContainerColorMini = if (isDarkTheme) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.5f)
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             .clickable { onExpand() },
         shape = shape,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 8.dp
+        color = if (hasBlurBackground) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primaryContainer,
+        tonalElevation = if (hasBlurBackground) 0.dp else 8.dp
     ) {
-        if (showWaveform) {
-            WaveformVisualizer(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.3f)
-                    .blur(16.dp),
-                magnitudes = visualizerData,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .scale(coverScale),
-                contentAlignment = Alignment.Center
-            ) {
-                if (coverShape == 2 && coverVinylEffect) {
-                    VinylRecordAsyncCover(
+        Box {
+            if (hasBlurBackground) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(80.dp)
+                        .alpha(if (isDarkTheme) 0.2f else 0.35f)
+                ) {
+                    AsyncImage(
                         model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
-                        rotation = if (coverSpin && isPlaying) spinRotation else 0f,
-                        modifier = Modifier.fillMaxSize()
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
-                } else {
-                    val activeShape = when (coverShape) {
-                        1 -> RoundedCornerShape(0.dp)
-                        2 -> CircleShape
-                        else -> RoundedCornerShape(8.dp)
-                    }
-                    Surface(
-                        shape = activeShape,
+                }
+                if (!isDarkTheme) {
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .rotate(if (coverShape == 2 && coverSpin && isPlaying) spinRotation else 0f),
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        AsyncImage(
-                            model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                            .background(Color.Black.copy(alpha = 0.15f))
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = song.title,
-                    modifier = Modifier.basicMarquee(),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1
+            if (showWaveform) {
+                WaveformVisualizer(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.3f)
+                        .blur(16.dp),
+                    magnitudes = visualizerData,
+                    color = MaterialTheme.colorScheme.primary
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = currentOutputIcon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+            }
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .scale(coverScale),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (coverShape == 2 && coverVinylEffect) {
+                        VinylRecordAsyncCover(
+                            model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
+                            rotation = if (coverSpin && isPlaying) spinRotation else 0f,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        val activeShape = when (coverShape) {
+                            1 -> RoundedCornerShape(0.dp)
+                            2 -> CircleShape
+                            else -> RoundedCornerShape(8.dp)
+                        }
+                        Surface(
+                            shape = activeShape,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .rotate(if (coverShape == 2 && coverSpin && isPlaying) spinRotation else 0f),
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        ) {
+                            AsyncImage(
+                                model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = song.artist,
-                        modifier = Modifier.basicMarquee().weight(1f, fill = false),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = song.title,
+                        modifier = Modifier.basicMarquee(),
+                        color = if (hasBlurBackground) Color.White else MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1
                     )
-                }
-            }
-
-            val activePrimary = getControlsPrimaryColor(useCustomControlsColor, controlsColorPalette)
-            val activeContainerColor = if (useCustomControlsColor) {
-                activePrimary.copy(alpha = 0.25f)
-            } else {
-                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
-            }
-            val activeIconTint = if (useCustomControlsColor) {
-                activePrimary
-            } else {
-                MaterialTheme.colorScheme.onPrimaryContainer
-            }
-
-            IconButton(onClick = onPrevious) {
-                Surface(
-                    shape = CircleShape,
-                    color = activeContainerColor,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        ReusableSkipIcon(
-                            isNext = false,
-                            controlsIconStyle = controlsIconStyle,
-                            isControlsFilled = isControlsFilled,
-                            tint = activeIconTint,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-
-            IconButton(onClick = onTogglePlay) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                            imageVector = currentOutputIcon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
+                            tint = if (hasBlurBackground) Color.White else MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = song.artist,
+                            modifier = Modifier.basicMarquee().weight(1f, fill = false),
+                            color = if (hasBlurBackground) Color.White else MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1
                         )
                     }
                 }
-            }
 
-            IconButton(onClick = onNext) {
-                Surface(
-                    shape = CircleShape,
-                    color = activeContainerColor,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        ReusableSkipIcon(
-                            isNext = true,
-                            controlsIconStyle = controlsIconStyle,
-                            isControlsFilled = isControlsFilled,
-                            tint = activeIconTint,
-                            modifier = Modifier.size(20.dp)
-                        )
+                val activePrimary = getControlsPrimaryColor(useCustomControlsColor, controlsColorPalette)
+                val activeContainerColor = if (useCustomControlsColor) {
+                    activePrimary.copy(alpha = 0.25f)
+                } else if (hasBlurBackground) {
+                    blurContainerColorMini
+                } else {
+                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                }
+                val activeIconTint = if (useCustomControlsColor) {
+                    activePrimary
+                } else if (hasBlurBackground) {
+                    Color.White
+                } else {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                }
+
+                IconButton(onClick = onPrevious) {
+                    Surface(
+                        shape = CircleShape,
+                        color = activeContainerColor,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            ReusableSkipIcon(
+                                isNext = false,
+                                controlsIconStyle = controlsIconStyle,
+                                isControlsFilled = isControlsFilled,
+                                tint = activeIconTint,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                IconButton(onClick = onTogglePlay) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (hasBlurBackground) blurPlayContainerColorMini else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                                contentDescription = null,
+                                tint = if (hasBlurBackground) Color.White else MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                IconButton(onClick = onNext) {
+                    Surface(
+                        shape = CircleShape,
+                        color = activeContainerColor,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            ReusableSkipIcon(
+                                isNext = true,
+                                controlsIconStyle = controlsIconStyle,
+                                isControlsFilled = isControlsFilled,
+                                tint = activeIconTint,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
