@@ -1,0 +1,36 @@
+From a837e538a67bc43aba6c4103fa349a3a3dd37571 Mon Sep 17 00:00:00 2001
+From: MrDemonc <mrdemonlich@gmail.com>
+Date: Sun, 24 May 2026 10:39:04 -0500
+Subject: [PATCH] Fix package conflict with debug and release
+
+---
+ app/src/main/AndroidManifest.xml                          | 2 +-
+ app/src/main/java/com/demonlab/lune/ui/activities/Lune.kt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index ca34bbb..603363e 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -116,7 +116,7 @@
+ 
+         <provider
+             android:name="androidx.core.content.FileProvider"
+-            android:authorities="com.demonlab.lune.fileprovider"
++            android:authorities="{applicationId}.fileprovider"
+             android:exported="false"
+             android:grantUriPermissions="true">
+             <meta-data
+diff --git a/app/src/main/java/com/demonlab/lune/ui/activities/Lune.kt b/app/src/main/java/com/demonlab/lune/ui/activities/Lune.kt
+index 65e6077..7fa3bad 100644
+--- a/app/src/main/java/com/demonlab/lune/ui/activities/Lune.kt
++++ b/app/src/main/java/com/demonlab/lune/ui/activities/Lune.kt
+@@ -2840,7 +2840,7 @@ fun FullPlayer(
+                                                     if (file.exists()) {
+                                                         val contentUri = androidx.core.content.FileProvider.getUriForFile(
+                                                             context,
+-                                                            "com.demonlab.lune.fileprovider",
++                                                            "${context.packageName}.fileprovider",
+                                                             file
+                                                         )
+                                                         val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
