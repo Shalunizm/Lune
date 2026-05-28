@@ -175,6 +175,14 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("is_blur_controls_enabled", false)
         set(value) = prefs.edit().putBoolean("is_blur_controls_enabled", value).apply()
 
+    var lyricsTextAlignment: Int
+        get() = prefs.getInt("lyrics_text_alignment", 0)
+        set(value) = prefs.edit().putInt("lyrics_text_alignment", value).apply()
+
+    var lyricsSpeedIndex: Int
+        get() = prefs.getInt("lyrics_speed_index", 0)
+        set(value) = prefs.edit().putInt("lyrics_speed_index", value).apply()
+
     var isGesturesEnabled: Boolean
         get() = prefs.getBoolean("is_gestures_enabled", false)
         set(value) = prefs.edit().putBoolean("is_gestures_enabled", value).apply()

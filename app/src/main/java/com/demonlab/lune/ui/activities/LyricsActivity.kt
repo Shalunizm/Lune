@@ -13,9 +13,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
+import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material3.*
@@ -100,7 +105,13 @@ fun LyricsScreen(onBack: () -> Unit) {
         Log.i("LyricsActivity", "Parsed ${lines.size} synced lines")
         lines
     }
+    val lyricsSettings = remember { SettingsManager.getInstance(context) }
     val listState = rememberLazyListState()
+    var isOptionsExpanded by remember { mutableStateOf(false) }
+    var textAlignIndex by remember { mutableIntStateOf(lyricsSettings.lyricsTextAlignment) }
+    var speedIndex by remember { mutableIntStateOf(lyricsSettings.lyricsSpeedIndex) }
+    val alignments = listOf(TextAlign.Start, TextAlign.Center)
+    val speedOptions = listOf("1", "2", "3", "5")
     
     // Sync progress periodically. This runs constantly to keep the playback position updated.
     LaunchedEffect(Unit) {
@@ -111,8 +122,10 @@ fun LyricsScreen(onBack: () -> Unit) {
     }
     
     // Auto-scroll to current line
-    val activeIndex = remember(currentPositionMs, lyricsLines) {
-        lyricsLines.indexOfLast { it.timeMs <= currentPositionMs }.coerceAtLeast(0)
+    val speedMultiplier = speedOptions[speedIndex].toFloat()
+    val adjustedPositionMs = (currentPositionMs * speedMultiplier).toLong().coerceAtMost(song.duration)
+    val activeIndex = remember(adjustedPositionMs, lyricsLines) {
+        lyricsLines.indexOfLast { it.timeMs <= adjustedPositionMs }.coerceAtLeast(0)
     }
     
     LaunchedEffect(activeIndex) {
@@ -271,7 +284,7 @@ fun LyricsScreen(onBack: () -> Unit) {
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontSize = 20.sp,
                                     lineHeight = 28.sp,
-                                    textAlign = TextAlign.Center
+                                    textAlign = alignments[textAlignIndex]
                                 ),
                                 color = Color.White.copy(alpha = 0.8f),
                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -331,7 +344,7 @@ fun LyricsScreen(onBack: () -> Unit) {
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontSize = 24.sp,
                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-                                    textAlign = TextAlign.Start
+                                    textAlign = alignments[textAlignIndex]
                                 ),
                                 color = color,
                                 modifier = Modifier
@@ -345,12 +358,76 @@ fun LyricsScreen(onBack: () -> Unit) {
                     }
                 }
             }
+            }
+        }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                AnimatedVisibility(
+                    visible = isOptionsExpanded,
+                    enter = fadeIn() + slideInHorizontally { it / 2 },
+                    exit = fadeOut() + slideOutHorizontally { it / 2 }
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color(0xCC333333),
+                        modifier = Modifier.height(56.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = {
+                                val next = (textAlignIndex + 1) % alignments.size
+                                textAlignIndex = next
+                                lyricsSettings.lyricsTextAlignment = next
+                            }) {
+                                Icon(
+                                    imageVector = if (alignments[textAlignIndex] == TextAlign.Start) Icons.AutoMirrored.Filled.FormatAlignLeft else Icons.Default.FormatAlignCenter,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            IconButton(onClick = {
+                                val next = (speedIndex + 1) % speedOptions.size
+                                speedIndex = next
+                                lyricsSettings.lyricsSpeedIndex = next
+                            }) {
+                                Text(
+                                    text = "${speedOptions[speedIndex]}x",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                FloatingActionButton(
+                    onClick = { isOptionsExpanded = !isOptionsExpanded },
+                    containerColor = Color(0xCC333333),
+                    shape = CircleShape,
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isOptionsExpanded) Icons.Default.Close else Icons.Default.Add,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
         }
     }
 }
-}
-}
-
 private fun parseLyrics(raw: String?): List<LyricsLine> {
     if (raw == null) return emptyList()
     
