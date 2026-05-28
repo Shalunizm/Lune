@@ -2,6 +2,7 @@ package com.demonlab.lune.ui.activities
 import android.Manifest
 import android.content.ContentUris
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -1340,8 +1341,23 @@ fun MainScreen(
                     2 -> true
                     else -> isSystemInDarkTheme()
                 }
-                val hasBlurBackgroundMini = settingsManager.isBlurEnabled &&
-                    (if (isDarkThemeMini) settingsManager.isBlurDarkMode else settingsManager.isBlurLightMode)
+                val miniPrefs = LocalContext.current.getSharedPreferences("lune_settings", android.content.Context.MODE_PRIVATE)
+                var blurEnabled by remember { mutableStateOf(settingsManager.isBlurEnabled) }
+                var blurDarkMode by remember { mutableStateOf(settingsManager.isBlurDarkMode) }
+                var blurLightMode by remember { mutableStateOf(settingsManager.isBlurLightMode) }
+                DisposableEffect(miniPrefs) {
+                    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                        when (key) {
+                            "is_blur_enabled" -> blurEnabled = miniPrefs.getBoolean("is_blur_enabled", true)
+                            "is_blur_dark_mode" -> blurDarkMode = miniPrefs.getBoolean("is_blur_dark_mode", true)
+                            "is_blur_light_mode" -> blurLightMode = miniPrefs.getBoolean("is_blur_light_mode", false)
+                        }
+                    }
+                    miniPrefs.registerOnSharedPreferenceChangeListener(listener)
+                    onDispose { miniPrefs.unregisterOnSharedPreferenceChangeListener(listener) }
+                }
+                val hasBlurBackgroundMini = blurEnabled &&
+                    (if (isDarkThemeMini) blurDarkMode else blurLightMode)
 
                 MiniPlayer(
                     song = song,
@@ -2822,8 +2838,14 @@ fun FullPlayer(
     ) {
         // Blurred background for non-cinematic mode
         if (!isCinematic && hasBlurBackground) {
+            val blurRequest = remember(song.id) {
+                ImageRequest.Builder(context)
+                    .data(song.coverUrl ?: song.albumArtUri)
+                    .crossfade(true)
+                    .build()
+            }
             AsyncImage(
-                model = song.coverUrl ?: song.albumArtUri,
+                model = blurRequest,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
@@ -2856,8 +2878,14 @@ fun FullPlayer(
             }
 
             // Full-screen cinematic background with Ken Burns
+            val cinematicRequest = remember(song.id) {
+                ImageRequest.Builder(context)
+                    .data(song.coverUrl ?: song.albumArtUri)
+                    .crossfade(true)
+                    .build()
+            }
             AsyncImage(
-                model = song.coverUrl ?: song.albumArtUri,
+                model = cinematicRequest,
                 contentDescription = null,
                 modifier = cinematicTransform(Modifier.fillMaxSize()),
                 contentScale = ContentScale.Crop
@@ -2894,8 +2922,14 @@ fun FullPlayer(
                             drawRect(brush = blurGradientBrush, blendMode = BlendMode.DstIn)
                         }
                 ) {
+                    val cinematicBlurRequest = remember(song.id) {
+                        ImageRequest.Builder(context)
+                            .data(song.coverUrl ?: song.albumArtUri)
+                            .crossfade(true)
+                            .build()
+                    }
                     AsyncImage(
-                        model = song.coverUrl ?: song.albumArtUri,
+                        model = cinematicBlurRequest,
                         contentDescription = null,
                         modifier = cinematicTransform(
                             Modifier
@@ -4134,6 +4168,7 @@ fun MiniPlayer(
         label = "SpinAnimation"
     )
 
+    val miniContext = LocalContext.current
     val blurContainerColorMini = if (isDarkTheme) Color.Black.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.4f)
     val blurPlayContainerColorMini = if (isDarkTheme) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.5f)
 
@@ -4154,8 +4189,14 @@ fun MiniPlayer(
                         .blur(80.dp)
                         .alpha(if (isDarkTheme) 0.2f else 0.35f)
                 ) {
+                    val miniBlurRequest = remember(song.id) {
+                        ImageRequest.Builder(miniContext)
+                            .data(song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground)
+                            .crossfade(true)
+                            .build()
+                    }
                     AsyncImage(
-                        model = song.coverUrl ?: song.albumArtUri ?: com.demonlab.lune.R.drawable.ic_launcher_foreground,
+                        model = miniBlurRequest,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
