@@ -17,7 +17,11 @@ import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import android.media.MediaScannerConnection
+import android.os.Environment
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -194,5 +198,33 @@ class MusicProvider(private val context: Context) {
         }
         saveToCache(songList)
         songList
+    }
+
+    suspend fun refreshLibrary(): List<Song> = withContext(Dispatchers.IO) {
+        if (!hasReadPermission()) return@withContext emptyList()
+
+        val audioExtensions = setOf("mp3", "flac", "wav", "aac", "m4a", "ogg", "opus", "wma", "alac")
+
+        // Collect paths: known songs from cache + common music directories
+        val pathsToScan = mutableSetOf<String>()
+        getCachedSongs().forEach { pathsToScan.add(it.path) }
+
+        val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+        if (musicDir.exists()) pathsToScan.add(musicDir.absolutePath)
+
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (downloadsDir.exists()) pathsToScan.add(downloadsDir.absolutePath)
+
+        if (pathsToScan.isNotEmpty()) {
+            val latch = CountDownLatch(1)
+            MediaScannerConnection.scanFile(
+                context,
+                pathsToScan.toTypedArray(),
+                null
+            ) { _, _ -> latch.countDown() }
+            latch.await(60, TimeUnit.SECONDS)
+        }
+
+        syncSongs()
     }
 }

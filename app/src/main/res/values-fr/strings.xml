@@ -55,6 +55,7 @@
     <string name="option_automix">Automix</string>
     <string name="option_timer">Minuteur</string>
     <string name="option_lyrics">Paroles</string>
+    <string name="refresh_library">Actualiser la bibliothèque</string>
     <string name="transition_mixing">Mixage</string>
     <string name="transition_crossfade">Fondu enchaîné</string>
     <string name="unknown_artist">Artiste inconnu</string>

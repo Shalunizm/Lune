@@ -1,6 +1,11 @@
 package com.demonlab.lune.ui.viewmodels
 
 import android.app.Application
+import android.database.ContentObserver
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +16,8 @@ import com.demonlab.lune.tools.Song
 import com.demonlab.lune.tools.SettingsManager
 import com.demonlab.lune.tools.MetadataManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.collect
@@ -42,6 +49,17 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             }
             
             syncSongsInternal()
+            isLoading = false
+        }
+    }
+
+    fun refreshLibrary() {
+        viewModelScope.launch {
+            isLoading = true
+            val refreshed = musicProvider.refreshLibrary()
+            if (refreshed.isNotEmpty()) {
+                allSongs = refreshed
+            }
             isLoading = false
         }
     }
@@ -364,10 +382,44 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private var mediaStoreObserver: ContentObserver? = null
+    private var debounceJob: Job? = null
+
+    private fun registerMediaStoreObserver() {
+        val context = getApplication<Application>()
+        val handler = Handler(Looper.getMainLooper())
+        val observer = object : ContentObserver(handler) {
+            override fun onChange(selfChange: Boolean) {
+                onChange(selfChange, null)
+            }
+            override fun onChange(selfChange: Boolean, uri: Uri?) {
+                debounceJob?.cancel()
+                debounceJob = viewModelScope.launch {
+                    delay(2000)
+                    syncSongsInternal()
+                }
+            }
+        }
+        context.contentResolver.registerContentObserver(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            true,
+            observer
+        )
+        mediaStoreObserver = observer
+    }
+
     init {
+        registerMediaStoreObserver()
         loadSongs()
         loadPlaylists()
         observeStats()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaStoreObserver?.let {
+            getApplication<Application>().contentResolver.unregisterContentObserver(it)
+        }
     }
 }
 
