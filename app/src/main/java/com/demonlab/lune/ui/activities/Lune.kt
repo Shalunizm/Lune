@@ -1787,7 +1787,8 @@ fun SongOptionsBottomSheet(
     onDismiss: () -> Unit,
     onAddToPlaylistClick: () -> Unit,
     onEditMetadataClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onMoveClick: (() -> Unit)? = null
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -1850,11 +1851,45 @@ fun SongOptionsBottomSheet(
                     }
                 )
             }
+            if (onMoveClick != null) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 1.dp),
+                    shape = RoundedCornerShape(4.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                ) {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = { Text(stringResource(R.string.move_song)) },
+                        leadingContent = {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.SwapVert,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.clickable {
+                            onDismiss()
+                            onMoveClick()
+                        }
+                    )
+                }
+            }
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 1.dp),
-                shape = RoundedCornerShape(4.dp),
+                shape = RoundedCornerShape(if (onMoveClick != null) 4.dp else 4.dp),
                 color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
             ) {
                 ListItem(
@@ -3713,6 +3748,7 @@ fun QueueBottomSheet(
     val musicViewModel: com.demonlab.lune.ui.viewmodels.MusicViewModel = viewModel()
     var optionsSong by remember { mutableStateOf<Song?>(null) }
     var showOptionsSheet by remember { mutableStateOf(false) }
+    var showMoveSheet by remember { mutableStateOf(false) }
     var showAddToPlaylist by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
 
@@ -3731,8 +3767,101 @@ fun QueueBottomSheet(
             onDeleteClick = {
                 showOptionsSheet = false
                 Toast.makeText(context, "Funcionalidad de borrado disponible en la lista principal", Toast.LENGTH_SHORT).show()
-            }
+            },
+            onMoveClick = if (optionsSong?.id != playbackManager.currentSong?.id) {
+                {
+                    showOptionsSheet = false
+                    showMoveSheet = true
+                }
+            } else null
         )
+    }
+
+    if (showMoveSheet && optionsSong != null) {
+        ModalBottomSheet(
+            onDismissRequest = { showMoveSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.move_song_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                )
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                ) {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = { Text(stringResource(R.string.move_to_front)) },
+                        supportingContent = { Text(stringResource(R.string.move_to_front_desc)) },
+                        leadingContent = {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.SkipNext,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.clickable {
+                            playbackManager.reorderQueueForSong(optionsSong!!, moveToFront = true)
+                            showMoveSheet = false
+                        }
+                    )
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 28.dp, bottomEnd = 28.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                ) {
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        headlineContent = { Text(stringResource(R.string.move_to_end)) },
+                        supportingContent = { Text(stringResource(R.string.move_to_end_desc)) },
+                        leadingContent = {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.LastPage,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.clickable {
+                            playbackManager.reorderQueueForSong(optionsSong!!, moveToFront = false)
+                            showMoveSheet = false
+                        }
+                    )
+                }
+            }
+        }
     }
 
     if (showAddToPlaylist && optionsSong != null) {

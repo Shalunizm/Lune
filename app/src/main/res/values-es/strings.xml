@@ -170,6 +170,12 @@
     <string name="output_bluetooth">Bluetooth</string>
     <string name="queue_now_playing">Reproduciendo ahora</string>
     <string name="queue_up_next">Siguientes</string>
+    <string name="move_song">Mover</string>
+    <string name="move_song_title">Mover canción en la cola</string>
+    <string name="move_to_front">Reproducir siguiente</string>
+    <string name="move_to_front_desc">Reproducir justo después de la canción actual</string>
+    <string name="move_to_end">Mover al final</string>
+    <string name="move_to_end_desc">Mover al final de la cola</string>
     <string name="option_visualizer">Visualizador</string>
     <string name="visualizer_full_player">Mostrar en Reproductor Grande</string>
     <string name="visualizer_mini_player">Mostrar en Mini Player</string>

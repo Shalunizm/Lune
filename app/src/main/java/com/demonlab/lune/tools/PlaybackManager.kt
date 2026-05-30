@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.*
 import java.util.Calendar
+import com.demonlab.lune.tools.playlist.QueueManager
 
 class PlaybackManager private constructor(private val context: Context) {
     private val settings = SettingsManager.getInstance(context)
@@ -62,6 +63,12 @@ class PlaybackManager private constructor(private val context: Context) {
         private set
     var isSpatialAudioEnabled by mutableStateOf(settings.isSpatialAudioEnabled)
         private set
+
+    private var frontQueueInsertCount = 0
+
+    fun resetQueueCounts() {
+        frontQueueInsertCount = 0
+    }
 
     var playbackSpeed by mutableStateOf(settings.playbackSpeed)
         private set
@@ -222,6 +229,7 @@ class PlaybackManager private constructor(private val context: Context) {
         if (playlist.isNotEmpty() && (playlist != activePlaylist || activePlaylist.isEmpty() || playlistId != activePlaylistId)) {
             activePlaylist = playlist
             activePlaylistId = playlistId
+            resetQueueCounts()
             
             if (category != null) {
                 activeCategory = category
@@ -663,6 +671,7 @@ class PlaybackManager private constructor(private val context: Context) {
 
     fun toggleShuffle() {
         isShuffle = !isShuffle
+        resetQueueCounts()
         
         val pId = activePlaylistId
         if (pId != null) {
@@ -852,6 +861,59 @@ class PlaybackManager private constructor(private val context: Context) {
             shuffledIndices.map { activePlaylist[it] }
         } else {
             activePlaylist
+        }
+    }
+
+    fun reorderQueueForSong(song: Song, moveToFront: Boolean) {
+        val current = currentSong ?: return
+        if (moveToFront) {
+            val oldIdx = activePlaylist.indexOfFirst { it.id == song.id }
+            activePlaylist = QueueManager.moveToFront(activePlaylist, current, song, frontQueueInsertCount)
+            val newIdx = activePlaylist.indexOfFirst { it.id == song.id }
+
+            if (oldIdx != newIdx) {
+                frontQueueInsertCount++
+
+                if (isShuffle && shuffledIndices.isNotEmpty()) {
+                    val mutable = shuffledIndices.toMutableList()
+
+                    mutable.remove(oldIdx)
+                    for (i in mutable.indices) {
+                        val v = mutable[i]
+                        if (oldIdx < newIdx && v in (oldIdx + 1)..newIdx) {
+                            mutable[i] = v - 1
+                        } else if (oldIdx > newIdx && v in newIdx until oldIdx) {
+                            mutable[i] = v + 1
+                        }
+                    }
+
+                    mutable.remove(newIdx)
+                    val currentSongIdx = activePlaylist.indexOfFirst { it.id == current.id }
+                    val insertPos = (mutable.indexOf(currentSongIdx) + 1).coerceAtMost(mutable.size)
+                    mutable.add(insertPos, newIdx)
+                    shuffledIndices = mutable
+                }
+            }
+        } else {
+            val oldIdx = activePlaylist.indexOfFirst { it.id == song.id }
+            activePlaylist = QueueManager.moveToEnd(activePlaylist, current, song)
+            val newIdx = activePlaylist.indexOfFirst { it.id == song.id }
+
+            if (oldIdx != newIdx && isShuffle && shuffledIndices.isNotEmpty()) {
+                val mutable = shuffledIndices.toMutableList()
+                mutable.remove(oldIdx)
+                for (i in mutable.indices) {
+                    val v = mutable[i]
+                    if (oldIdx < newIdx && v in (oldIdx + 1)..newIdx) {
+                        mutable[i] = v - 1
+                    } else if (oldIdx > newIdx && v in newIdx until oldIdx) {
+                        mutable[i] = v + 1
+                    }
+                }
+                mutable.remove(newIdx)
+                mutable.add(newIdx)
+                shuffledIndices = mutable
+            }
         }
     }
 

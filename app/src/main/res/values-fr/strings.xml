@@ -170,6 +170,12 @@
     <string name="output_bluetooth">Bluetooth</string>
     <string name="queue_now_playing">Lecture en cours</string>
     <string name="queue_up_next">À suivre</string>
+    <string name="move_song">Déplacer</string>
+    <string name="move_song_title">Déplacer la chanson dans la file</string>
+    <string name="move_to_front">Lire ensuite</string>
+    <string name="move_to_front_desc">Lire juste après la chanson en cours</string>
+    <string name="move_to_end">Déplacer à la fin</string>
+    <string name="move_to_end_desc">Déplacer à la fin de la file</string>
     <string name="option_visualizer">Visualiseur</string>
     <string name="visualizer_full_player">Afficher dans le grand lecteur</string>
     <string name="visualizer_mini_player">Afficher dans le mini lecteur</string>
