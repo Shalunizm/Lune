@@ -5563,7 +5563,7 @@ fun PlaylistDetailView(
                                     scaleX = headerScale
                                     scaleY = headerScale
                                 }
-                                .padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                                .padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Spacer(modifier = Modifier.height(55.dp))
@@ -5592,9 +5592,7 @@ fun PlaylistDetailView(
                         
                         // Information and Controls Row
                         Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             tonalElevation = 4.dp,
@@ -5602,7 +5600,7 @@ fun PlaylistDetailView(
                         ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 20.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             val settingsManager = SettingsManager.getInstance(LocalContext.current)
@@ -5932,7 +5930,7 @@ fun AlbumDetailView(
                                     scaleX = headerScale
                                     scaleY = headerScale
                                 }
-                                .padding(bottom = 24.dp, start = 24.dp, end = 24.dp),
+                                .padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Spacer(modifier = Modifier.height(55.dp))
@@ -5970,9 +5968,7 @@ fun AlbumDetailView(
                         
                         // Information and Controls Row
                         Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                             tonalElevation = 4.dp,
@@ -5980,7 +5976,7 @@ fun AlbumDetailView(
                         ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 20.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             val settingsManager = SettingsManager.getInstance(context)
