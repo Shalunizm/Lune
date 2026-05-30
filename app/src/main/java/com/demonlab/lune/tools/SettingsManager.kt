@@ -12,6 +12,9 @@ class SettingsManager(context: Context) {
     private val _customTitleFlow = MutableStateFlow(prefs.getString("custom_title", "") ?: "")
     val customTitleFlow: StateFlow<String> = _customTitleFlow.asStateFlow()
 
+    private val _lastPlaylistNameFlow = MutableStateFlow(prefs.getString("last_playlist_name", "") ?: "")
+    val lastPlaylistNameFlow: StateFlow<String> = _lastPlaylistNameFlow.asStateFlow()
+
     var isFirstRun: Boolean
         get() = prefs.getBoolean("is_first_run", true)
         set(value) = prefs.edit().putBoolean("is_first_run", value).apply()
@@ -134,6 +137,13 @@ class SettingsManager(context: Context) {
     var lastPlaylistId: Long
         get() = prefs.getLong("last_playlist_id", -1L)
         set(value) = prefs.edit().putLong("last_playlist_id", value).apply()
+
+    var lastPlaylistName: String
+        get() = _lastPlaylistNameFlow.value
+        set(value) {
+            prefs.edit().putString("last_playlist_name", value).apply()
+            _lastPlaylistNameFlow.value = value
+        }
 
     var activeCategory: String
         get() = prefs.getString("active_category", "") ?: ""

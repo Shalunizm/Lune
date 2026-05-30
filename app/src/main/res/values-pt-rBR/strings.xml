@@ -92,6 +92,7 @@
     <string name="add_to_playlist">Playlist</string>
     <string name="create_playlist">Criar Playlist</string>
     <string name="playlist_name">Nome da Playlist</string>
+    <string name="last_played_playlist">Ultima ouvida</string>
     <string name="edit_playlist_name">Editar Nome da Playlist</string>
     <string name="cancel">Cancelar</string>
     <string name="create">Criar</string>
@@ -274,6 +275,12 @@
     <string name="stats_songs_message">Seus sucessos mais repetidos! 🔥</string>
     <string name="stats_music_unit">de música</string>
     <string name="stats_loading_hits">Carregando seus sucessos…</string>
+
+    <!-- Info Cards -->
+    <string name="info_card_time">Parabéns! Hoje você ouviu %s de música</string>
+    <string name="info_card_songs">Vemos que você ama música! Você tem %d músicas no total, continue assim!</string>
+    <string name="info_card_favorites_has">Você tem %d músicas favoritas, continue aproveitando!</string>
+    <string name="info_card_favorites_none">Você ainda não tem músicas favoritas, adicione algumas!</string>
 
     <!-- Onboarding -->
     <string name="onboarding_description">O reprodutor de música mais avançado para o seu dispositivo.</string>

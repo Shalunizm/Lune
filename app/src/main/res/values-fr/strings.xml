@@ -92,6 +92,7 @@
     <string name="add_to_playlist">Ajouter à la playlist</string>
     <string name="create_playlist">Créer une playlist</string>
     <string name="playlist_name">Nom de la playlist</string>
+    <string name="last_played_playlist">Derniere ecoute</string>
     <string name="edit_playlist_name">Modifier le nom de la playlist</string>
     <string name="cancel">Annuler</string>
     <string name="create">Créer</string>
@@ -275,6 +276,12 @@
     <string name="stats_songs_message">Tes morceaux les plus écoutés ! </string>
     <string name="stats_music_unit">de musique</string>
     <string name="stats_loading_hits">Chargement de tes hits…</string>
+
+    <!-- Info Cards -->
+    <string name="info_card_time">Félicitations ! Aujourd\'hui tu as écouté %s de musique</string>
+    <string name="info_card_songs">On voit que tu aimes la musique ! Tu as %d chansons au total, continue comme ça !</string>
+    <string name="info_card_favorites_has">Tu as %d chansons favorites, continue à en profiter !</string>
+    <string name="info_card_favorites_none">Tu n\'as pas encore de chansons favorites, ajoutes-en !</string>
 
     <!-- Onboarding -->
     <string name="onboarding_description">Le lecteur de musique le plus avancé pour votre appareil.</string>

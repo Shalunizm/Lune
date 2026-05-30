@@ -223,7 +223,7 @@ class PlaybackManager private constructor(private val context: Context) {
         }
     }
 
-    fun play(song: Song, playlist: List<Song> = emptyList(), playlistId: Long? = null, category: String? = null, fromQueue: Boolean = false) {
+    fun play(song: Song, playlist: List<Song> = emptyList(), playlistId: Long? = null, playlistName: String? = null, category: String? = null, fromQueue: Boolean = false) {
         currentSong = song
         isPlaying = true
         if (playlist.isNotEmpty() && (playlist != activePlaylist || activePlaylist.isEmpty() || playlistId != activePlaylistId)) {
@@ -251,7 +251,12 @@ class PlaybackManager private constructor(private val context: Context) {
         
         isQueueFinished = false
         settings.lastPlayedSongId = song.id
-        if (playlistId != null) settings.lastPlaylistId = playlistId else settings.lastPlaylistId = -1L
+        if (playlistId != null) {
+            settings.lastPlaylistId = playlistId
+            if (playlistName != null) settings.lastPlaylistName = playlistName
+        } else {
+            settings.lastPlaylistId = -1L
+        }
         
         startStatsTracking()
         // Ensure currentShufflePosition is updated

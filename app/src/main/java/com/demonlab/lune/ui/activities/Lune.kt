@@ -1140,6 +1140,8 @@ fun MainScreen(
                                 allSongs = pageFilteredSongs,
                                 allPlaylists = musicViewModel.playlists,
                                 bottomPadding = bottomPadding,
+                                currentSong = currentSong,
+                                isPlaying = isPlaying,
                                 onSongClick = { song, listContext ->
                                     onCurrentSongChange(song)
                                     playbackManager.play(song, listContext, -100L, category = "ALL")
@@ -1148,6 +1150,11 @@ fun MainScreen(
                                 },
                                 onPlaylistClick = { playlist ->
                                     selectedPlaylist = playlist
+                                },
+                                onExpandPlayer = { onIsPlayerExpandedChange(true) },
+                                onPlayToggle = {
+                                    if (isPlaying) playbackManager.pause() else playbackManager.resume()
+                                    onIsPlayingChange(!isPlaying)
                                 }
                             )
                         }
@@ -1155,15 +1162,25 @@ fun MainScreen(
                             var viewStyle by remember { mutableIntStateOf(settingsManager.albumViewStyle) }
                             
                             Column(modifier = Modifier.fillMaxSize()) {
-                                AlbumsListHeader(
-                                    albumCount = albums.size,
-                                    viewStyle = viewStyle,
-                                    onToggleViewStyle = {
-                                        val newStyle = if (viewStyle == 0) 1 else 0
-                                        viewStyle = newStyle
-                                        settingsManager.albumViewStyle = newStyle
-                                    }
-                                )
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    tonalElevation = 4.dp,
+                                    shadowElevation = 0.dp
+                                ) {
+                                    AlbumsListHeader(
+                                        albumCount = albums.size,
+                                        viewStyle = viewStyle,
+                                        onToggleViewStyle = {
+                                            val newStyle = if (viewStyle == 0) 1 else 0
+                                            viewStyle = newStyle
+                                            settingsManager.albumViewStyle = newStyle
+                                        }
+                                    )
+                                }
                                 
                                 Box(modifier = Modifier.weight(1f)) {
                                     if (viewStyle == 0) {
@@ -1191,7 +1208,7 @@ fun MainScreen(
                                 onPlayPlaylist = { playlist ->
                                     musicViewModel.getSongsForPlaylist(playlist.id) { songs ->
                                         if (songs.isNotEmpty()) {
-                                            playbackManager.play(songs[0], songs, playlist.id, category = "PLAYLISTS")
+                                            playbackManager.play(songs[0], songs, playlist.id, playlist.name, category = "PLAYLISTS")
                                             onCurrentSongChange(songs[0])
                                             onIsPlayingChange(true)
                                         }
@@ -1245,37 +1262,47 @@ fun MainScreen(
                                 ) {
                                     if (showSimplifiedHeader) {
                                         item {
-                                            SongsListHeader(
-                                                songs = pageSortedSongs,
-                                                isShuffleActive = isShuffleActive,
-                                                isCurrentListPlaying = isCurrentListPlaying,
-                                                isPlaying = isPlaying,
-                                                isSortActive = activeSortOption != "ALPHABETICAL" || !activeIsSortAscending,
-                                                onSortClick = { showSortSheet = true },
-                                                onPlayClick = {
-                                                    if (settingsManager.isHapticVibrationEnabled) {
-                                                        vibrator.triggerLightVibration()
+                                            Surface(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                                shape = RoundedCornerShape(20.dp),
+                                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                                tonalElevation = 4.dp,
+                                                shadowElevation = 0.dp
+                                            ) {
+                                                SongsListHeader(
+                                                    songs = pageSortedSongs,
+                                                    isShuffleActive = isShuffleActive,
+                                                    isCurrentListPlaying = isCurrentListPlaying,
+                                                    isPlaying = isPlaying,
+                                                    isSortActive = activeSortOption != "ALPHABETICAL" || !activeIsSortAscending,
+                                                    onSortClick = { showSortSheet = true },
+                                                    onPlayClick = {
+                                                        if (settingsManager.isHapticVibrationEnabled) {
+                                                            vibrator.triggerLightVibration()
+                                                        }
+                                                        if (isCurrentListPlaying) {
+                                                            if (isPlaying) playbackManager.pause() else playbackManager.resume()
+                                                            onIsPlayingChange(!isPlaying)
+                                                        } else if (pageSortedSongs.isNotEmpty()) {
+                                                            val songToPlay = if (isShuffleActive) pageSortedSongs.random() else pageSortedSongs[0]
+                                                            onCurrentSongChange(songToPlay)
+                                                            playbackManager.play(songToPlay, pageSortedSongs, pageContextId, category = folder)
+                                                            onIsPlayingChange(true)
+                                                        }
+                                                    },
+                                                    onShuffleClick = {
+                                                        if (isCurrentListPlaying) {
+                                                            playbackManager.toggleShuffle()
+                                                            localShuffleState = playbackManager.isShuffle
+                                                        } else {
+                                                            localShuffleState = !localShuffleState
+                                                            settingsManager.setPlaylistShuffle(pageContextId, localShuffleState)
+                                                        }
                                                     }
-                                                    if (isCurrentListPlaying) {
-                                                        if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                                                        onIsPlayingChange(!isPlaying)
-                                                    } else if (pageSortedSongs.isNotEmpty()) {
-                                                        val songToPlay = if (isShuffleActive) pageSortedSongs.random() else pageSortedSongs[0]
-                                                        onCurrentSongChange(songToPlay)
-                                                        playbackManager.play(songToPlay, pageSortedSongs, pageContextId, category = folder)
-                                                        onIsPlayingChange(true)
-                                                    }
-                                                },
-                                                onShuffleClick = {
-                                                    if (isCurrentListPlaying) {
-                                                        playbackManager.toggleShuffle()
-                                                        localShuffleState = playbackManager.isShuffle
-                                                    } else {
-                                                        localShuffleState = !localShuffleState
-                                                        settingsManager.setPlaylistShuffle(pageContextId, localShuffleState)
-                                                    }
-                                                }
-                                            )
+                                                )
+                                            }
                                         }
                                     }
                                     itemsIndexed(pageSortedSongs, key = { _, it -> it.id }) { index, song ->
@@ -1380,7 +1407,7 @@ fun MainScreen(
                     isSortAscending = activeIsSortAscending,
                     onBack = { selectedPlaylist = null },
                     onSongClick = { song, sortedList ->
-                        playbackManager.play(song, sortedList, playListRender.id, category = "PLAYLISTS")
+                        playbackManager.play(song, sortedList, playListRender.id, playListRender.name, category = "PLAYLISTS")
                         onCurrentSongChange(song)
                         onIsPlayingChange(true)
                     },
@@ -2093,7 +2120,7 @@ fun AlbumsListHeader(
         Column(horizontalAlignment = Alignment.Start) {
             Text(
                 text = albumCount.toString(),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -2107,8 +2134,8 @@ fun AlbumsListHeader(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = stringResource(R.string.tab_albums), // Display "Artists" text per user request
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = stringResource(R.string.tab_albums),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -2121,13 +2148,13 @@ fun AlbumsListHeader(
                 onClick = onToggleViewStyle,
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(36.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         if (viewStyle == 0) Icons.Default.ViewCarousel else Icons.Default.GridView,
                         contentDescription = "Toggle View Style",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -4966,26 +4993,77 @@ fun PlaylistListScreen(
         contentPadding = PaddingValues(bottom = bottomPadding + 16.dp)
     ) {
         item {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.create_playlist), fontWeight = FontWeight.SemiBold) },
-                leadingContent = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 4.dp,
+                shadowElevation = 0.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp, vertical = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.Start) {
+                        val lastPlaylistName by settingsManager.lastPlaylistNameFlow.collectAsState()
+                        if (lastPlaylistName.isNotEmpty()) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "${stringResource(R.string.last_played_playlist)}: $lastPlaylistName",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.QueueMusic,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${stringResource(R.string.playlists)} (${playlists.size})",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
                     Surface(
+                        onClick = { showCreateDialog = true },
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(56.dp)
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 Icons.Default.Add,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(24.dp)
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }
-                },
-                modifier = Modifier.clickable { showCreateDialog = true }
-            )
+                }
+            }
         }
         
         itemsIndexed(playlists, key = { _, it -> it.id }) { index, playlist ->
@@ -5513,6 +5591,15 @@ fun PlaylistDetailView(
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         // Information and Controls Row
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            tonalElevation = 4.dp,
+                            shadowElevation = 0.dp
+                        ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -5644,6 +5731,7 @@ fun PlaylistDetailView(
                                     }
                                 }
                             }
+                        }
                         }
                     }
                 }
@@ -5881,6 +5969,15 @@ fun AlbumDetailView(
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         // Information and Controls Row
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            tonalElevation = 4.dp,
+                            shadowElevation = 0.dp
+                        ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -5990,6 +6087,7 @@ fun AlbumDetailView(
                                     }
                                 }
                             }
+                        }
                         }
                     }
                 }
