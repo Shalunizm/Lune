@@ -61,6 +61,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -68,6 +69,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Brush
@@ -572,10 +574,12 @@ fun MainScreen(
         rememberTopAppBarState(initialHeightOffset = -Float.MAX_VALUE)
     )
     
-    val mainListState = rememberLazyListState()
-    
     var showMenu by remember { mutableStateOf(false) }
     var selectedAlbum by remember { mutableStateOf<Album?>(null) }
+
+    val visibleSongs = remember(rawAllSongs, hiddenFolders.value) {
+        rawAllSongs.filter { !hiddenFolders.value.contains(it.folderName) }
+    }
 
     val contextId = remember(selectedFolder) {
         when (selectedFolder) {
@@ -625,13 +629,10 @@ fun MainScreen(
             .sortedBy { it.name }
     }
 
-    // Reset selected album when folder changes (except when specifically navigating to detail views)
     LaunchedEffect(selectedFolder) {
         if (selectedFolder.isNotEmpty()) {
             settingsManager.lastCategory = selectedFolder
         }
-        // Force scroll to top when category changes so header is visible
-        mainListState.scrollToItem(0)
     }
 
 
@@ -913,109 +914,233 @@ fun MainScreen(
                         }
                     }
 
-                    LazyRow(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
+                            .padding(vertical = 8.dp, horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        item {
-                            FilterChip(
-                                selected = false,
-                                onClick = { onShowFolderSheetChange(true) },
-                                label = { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.cd_edit_folders), modifier = Modifier.size(16.dp)) },
-                                shape = RoundedCornerShape(percent = 50),
-                                modifier = Modifier.bounceClick(),
-                                border = null,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        Surface(
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .size(48.dp)
+                                .bounceClick()
+                        ) {
+                            IconButton(onClick = { onShowFolderSheetChange(true) }) {
+                                Icon(
+                                    Icons.Default.FilterList,
+                                    contentDescription = stringResource(R.string.cd_edit_folders),
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
                                 )
-                            )
+                            }
                         }
-                        itemsIndexed(folders) { index, folder ->
-                            val isFirst = index == 0
-                            val isLast = index == folders.lastIndex
-                            val isCurrentContext = playbackManager.activeCategory == folder && playbackManager.currentSong != null
-                            val isSelected = selectedFolder == folder
-                            
-                            val surfaceColor = MaterialTheme.colorScheme.surface
-                            val luma = surfaceColor.red * 0.299f + surfaceColor.green * 0.587f + surfaceColor.blue * 0.114f
-                            val isDark = luma < 0.5f
-                            val selectedBg = if (isDark) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary
-                            val onSelected = if (isDark) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
 
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = { onSelectedFolderChange(folder) },
-                                modifier = Modifier.bounceClick(),
-                                border = null,
-                                label = { 
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        val label = when(folder) {
-                                            "RESUME" -> sTabResume
-                                            "ALL" -> sTabAll
-                                            "FAVORITES" -> sTabFavorites
-                                            "ALBUMS" -> sTabAlbums
-                                            "PLAYLISTS" -> sTabPlaylists
-                                            else -> folder
-                                        }
-                                        Text(
-                                            text = label,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                        if (isCurrentContext) {
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(6.dp)
-                                                    .background(if (isSelected) onSelected else MaterialTheme.colorScheme.primary, CircleShape)
+                        val surfaceColor = MaterialTheme.colorScheme.surface
+                        val luma = surfaceColor.red * 0.299f + surfaceColor.green * 0.587f + surfaceColor.blue * 0.114f
+                        val isDark = luma < 0.5f
+                        val selectedBg = if (isDark) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary
+                        val onSelected = if (isDark) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
+
+                        Surface(
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                            modifier = Modifier
+                                .height(48.dp)
+                                .weight(1f)
+                        ) {
+                            val pillListState = rememberLazyListState()
+                            LaunchedEffect(selectedFolder) {
+                                val idx = folders.indexOf(selectedFolder)
+                                if (idx != -1) {
+                                    pillListState.animateScrollToItem(idx)
+                                    // Re-scroll after AnimatedContent width transition settles
+                                    pillListState.animateScrollToItem(idx)
+                                }
+                            }
+                            LazyRow(
+                                state = pillListState,
+                                verticalAlignment = Alignment.CenterVertically,
+                                contentPadding = PaddingValues(horizontal = 4.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                itemsIndexed(folders) { index, folder ->
+                                    val isCurrentContext = playbackManager.activeCategory == folder && playbackManager.currentSong != null
+                                    val isSelected = selectedFolder == folder
+                                    val label = when(folder) {
+                                        "RESUME" -> sTabResume
+                                        "ALL" -> sTabAll
+                                        "FAVORITES" -> sTabFavorites
+                                        "ALBUMS" -> sTabAlbums
+                                        "PLAYLISTS" -> sTabPlaylists
+                                        else -> folder
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .then(
+                                                if (isSelected) Modifier.background(selectedBg, RoundedCornerShape(20.dp))
+                                                else Modifier
                                             )
+                                            .bounceClick()
+                                            .clickable { onSelectedFolderChange(folder) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(horizontal = 12.dp)
+                                        ) {
+                                            AnimatedContent(
+                                                targetState = isSelected,
+                                                transitionSpec = {
+                                                    fadeIn(animationSpec = tween(300)) togetherWith
+                                                        fadeOut(animationSpec = tween(300))
+                                                },
+                                                label = "tab_content"
+                                            ) { selected ->
+                                                if (selected) {
+                                                    Text(
+                                                        text = label,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = onSelected,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                } else {
+                                                    when (folder) {
+                                                        "RESUME" -> Icon(
+                                                            imageVector = Icons.Default.History,
+                                                            contentDescription = label,
+                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                        "ALL" -> Icon(
+                                                            imageVector = Icons.Default.LibraryMusic,
+                                                            contentDescription = label,
+                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                        "ALBUMS" -> Icon(
+                                                            imageVector = Icons.Default.Album,
+                                                            contentDescription = label,
+                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                        "PLAYLISTS" -> Icon(
+                                                            imageVector = Icons.Default.QueueMusic,
+                                                            contentDescription = label,
+                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                        "FAVORITES" -> Icon(
+                                                            imageVector = Icons.Default.FavoriteBorder,
+                                                            contentDescription = label,
+                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                        else -> Icon(
+                                                            imageVector = Icons.Default.Folder,
+                                                            contentDescription = label,
+                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            if (isCurrentContext) {
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(6.dp)
+                                                        .background(if (isSelected) onSelected else MaterialTheme.colorScheme.primary, CircleShape)
+                                                )
+                                            }
                                         }
                                     }
-                                },
-                                shape = RoundedCornerShape(percent = 50),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    selectedContainerColor = selectedBg,
-                                    selectedLabelColor = onSelected
-                                )
-                            )
+                                }
+                            }
                         }
                     }
                 }
 
 
-                val tabAlbumsText = stringResource(R.string.tab_albums)
-                val playlistsText = stringResource(R.string.playlists)
-                val currentScreen = remember(selectedFolder, filteredSongs.isEmpty()) {
-                    when {
-                        selectedFolder == "RESUME" -> "RESUME"
-                        selectedFolder == "ALBUMS" -> "ALBUM_GRID"
-                        selectedFolder == "PLAYLISTS" -> "PLAYLIST_GRID"
-                        filteredSongs.isEmpty() -> "EMPTY"
-                        else -> "LIST"
+                val pagerState = rememberPagerState(
+                    pageCount = { folders.size },
+                    initialPage = (folders.indexOf(selectedFolder).coerceAtLeast(0))
+                )
+
+                var isPagerProgrammaticScroll by remember { mutableStateOf(false) }
+
+                LaunchedEffect(selectedFolder) {
+                    val target = folders.indexOf(selectedFolder)
+                    if (target != -1 && target != pagerState.currentPage) {
+                        isPagerProgrammaticScroll = true
+                        pagerState.animateScrollToPage(target)
+                        isPagerProgrammaticScroll = false
                     }
                 }
 
-                androidx.compose.animation.Crossfade(
-                    targetState = currentScreen,
-                    animationSpec = androidx.compose.animation.core.tween(150),
-                    label = "main_screen_crossfade"
-                ) { screen ->
-                    when (screen) {
+                LaunchedEffect(pagerState.currentPage) {
+                    if (!isPagerProgrammaticScroll) {
+                        val f = folders.getOrNull(pagerState.currentPage)
+                        if (f != null && f != selectedFolder) {
+                            onSelectedFolderChange(f)
+                        }
+                    }
+                }
+
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    val folder = folders.getOrNull(page) ?: return@HorizontalPager
+
+                    val pageFilteredSongs = remember(visibleSongs, folder) {
+                        when (folder) {
+                            "RESUME", "ALL", "ALBUMS" -> visibleSongs
+                            "FAVORITES" -> visibleSongs.filter { it.isFavorite }
+                            else -> visibleSongs.filter { it.folderName == folder }
+                        }
+                    }
+
+                    val pageSortedSongs = remember(pageFilteredSongs, activeSortOption, activeIsSortAscending) {
+                        playbackManager.getSortedList(pageFilteredSongs, activeSortOption, activeIsSortAscending)
+                    }
+
+                    val pageContextId = remember(folder) {
+                        when (folder) {
+                            "RESUME", "ALL", "ALBUMS" -> -100L
+                            "FAVORITES" -> -200L
+                            else -> folder.hashCode().toLong()
+                        }
+                    }
+
+                    val pageCurrentScreen = remember(folder, pageFilteredSongs.isEmpty()) {
+                        when {
+                            folder == "RESUME" -> "RESUME"
+                            folder == "ALBUMS" -> "ALBUM_GRID"
+                            folder == "PLAYLISTS" -> "PLAYLIST_GRID"
+                            pageFilteredSongs.isEmpty() -> "EMPTY"
+                            else -> "LIST"
+                        }
+                    }
+
+                    val pageMainListState = remember(folder) { LazyListState() }
+
+                    when (pageCurrentScreen) {
 
                         "RESUME" -> {
                             com.demonlab.lune.ui.screens.ResumeScreen(
                                 viewModel = musicViewModel,
-                                allSongs = filteredSongs,
+                                allSongs = pageFilteredSongs,
                                 allPlaylists = musicViewModel.playlists,
                                 bottomPadding = bottomPadding,
                                 onSongClick = { song, listContext ->
-                                    // Play from the context of Resume items but keeping them loaded in All Songs
                                     onCurrentSongChange(song)
                                     playbackManager.play(song, listContext, -100L, category = "ALL")
                                     onIsPlayingChange(true)
@@ -1023,8 +1148,6 @@ fun MainScreen(
                                 },
                                 onPlaylistClick = { playlist ->
                                     selectedPlaylist = playlist
-                                    // Make sure it visually navigates (it requires changing selectedFolder or letting PlaylistListScreen handle it)
-                                    // In our architecture Playlist mode is overlaid via selectedPlaylist state.
                                 }
                             )
                         }
@@ -1079,7 +1202,6 @@ fun MainScreen(
                                     musicViewModel.deletePlaylist(playlist) {
                                         playbackManager.checkPlaylistStatus()
                                         if (isActive) {
-                                            // Revert to all songs if the playing playlist was deleted
                                             if (musicViewModel.allSongs.isNotEmpty()) {
                                                 playbackManager.play(currentSong ?: musicViewModel.allSongs[0], musicViewModel.allSongs, -100L, category = "ALL")
                                             }
@@ -1111,20 +1233,20 @@ fun MainScreen(
                         }
                         "LIST" -> {
                             Box(modifier = Modifier.fillMaxSize()) {
-                                val isCurrentListPlaying = playbackManager.activePlaylistId == contextId && playbackManager.activeCategory == selectedFolder
-                                var localShuffleState by remember(contextId) { mutableStateOf(settingsManager.getPlaylistShuffle(contextId)) }
+                                val isCurrentListPlaying = playbackManager.activePlaylistId == pageContextId && playbackManager.activeCategory == folder
+                                var localShuffleState by remember(pageContextId) { mutableStateOf(settingsManager.getPlaylistShuffle(pageContextId)) }
                                 val isShuffleActive = if (isCurrentListPlaying) playbackManager.isShuffle else localShuffleState
-                                val showSimplifiedHeader = selectedFolder == "ALL" || selectedFolder == "FAVORITES" || (!listOf("RESUME", "ALBUMS", "PLAYLISTS").contains(selectedFolder))
+                                val showSimplifiedHeader = folder == "ALL" || folder == "FAVORITES" || (!listOf("RESUME", "ALBUMS", "PLAYLISTS").contains(folder))
 
                                 LazyColumn(
-                                    state = mainListState,
+                                    state = pageMainListState,
                                     modifier = Modifier.fillMaxSize(),
                                     contentPadding = PaddingValues(bottom = bottomPadding)
                                 ) {
                                     if (showSimplifiedHeader) {
                                         item {
                                             SongsListHeader(
-                                                songs = sortedSongs,
+                                                songs = pageSortedSongs,
                                                 isShuffleActive = isShuffleActive,
                                                 isCurrentListPlaying = isCurrentListPlaying,
                                                 isPlaying = isPlaying,
@@ -1137,10 +1259,10 @@ fun MainScreen(
                                                     if (isCurrentListPlaying) {
                                                         if (isPlaying) playbackManager.pause() else playbackManager.resume()
                                                         onIsPlayingChange(!isPlaying)
-                                                    } else if (sortedSongs.isNotEmpty()) {
-                                                        val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
+                                                    } else if (pageSortedSongs.isNotEmpty()) {
+                                                        val songToPlay = if (isShuffleActive) pageSortedSongs.random() else pageSortedSongs[0]
                                                         onCurrentSongChange(songToPlay)
-                                                        playbackManager.play(songToPlay, sortedSongs, contextId, category = selectedFolder)
+                                                        playbackManager.play(songToPlay, pageSortedSongs, pageContextId, category = folder)
                                                         onIsPlayingChange(true)
                                                     }
                                                 },
@@ -1150,25 +1272,25 @@ fun MainScreen(
                                                         localShuffleState = playbackManager.isShuffle
                                                     } else {
                                                         localShuffleState = !localShuffleState
-                                                        settingsManager.setPlaylistShuffle(contextId, localShuffleState)
+                                                        settingsManager.setPlaylistShuffle(pageContextId, localShuffleState)
                                                     }
                                                 }
                                             )
                                         }
                                     }
-                                    itemsIndexed(sortedSongs, key = { _, it -> it.id }) { index, song ->
+                                    itemsIndexed(pageSortedSongs, key = { _, it -> it.id }) { index, song ->
                                         val isFirst = index == 0
-                                        val isLast = index == sortedSongs.lastIndex
+                                        val isLast = index == pageSortedSongs.lastIndex
                                             SongItem(
                                                 isFirst = isFirst,
                                                 isLast = isLast,
                                                 song = song,
-                                                currentlyPlaying = currentSong?.id == song.id && playbackManager.activePlaylistId == contextId,
+                                                currentlyPlaying = currentSong?.id == song.id && playbackManager.activePlaylistId == pageContextId,
                                                 isPlaying = isPlaying,
                                             onClick = {
-                                                if (currentSong?.id != song.id || playbackManager.activePlaylistId != contextId) {
+                                                if (currentSong?.id != song.id || playbackManager.activePlaylistId != pageContextId) {
                                                     onCurrentSongChange(song)
-                                                    playbackManager.play(song, sortedSongs, contextId, category = selectedFolder)
+                                                    playbackManager.play(song, pageSortedSongs, pageContextId, category = folder)
                                                     onIsPlayingChange(true)
                                                 }
                                                 onIsPlayerExpandedChange(true)
@@ -1182,16 +1304,15 @@ fun MainScreen(
                                     }
                                 }
 
-                                // Scroll to Current Button
-                                val targetIndex = remember(sortedSongs, currentSong, contextId, playbackManager.activePlaylistId, showSimplifiedHeader) {
-                                    if (currentSong != null && playbackManager.activePlaylistId == contextId) {
-                                        val idx = sortedSongs.indexOfFirst { it.id == currentSong.id }
+                                val targetIndex = remember(pageSortedSongs, currentSong, pageContextId, playbackManager.activePlaylistId, showSimplifiedHeader) {
+                                    if (currentSong != null && playbackManager.activePlaylistId == pageContextId) {
+                                        val idx = pageSortedSongs.indexOfFirst { it.id == currentSong.id }
                                         if (idx != -1) idx + (if (showSimplifiedHeader) 1 else 0) else -1
                                     } else -1
                                 }
                                 
                                 ScrollToCurrentButton(
-                                    listState = mainListState,
+                                    listState = pageMainListState,
                                     targetIndex = targetIndex,
                                     label = stringResource(R.string.queue_now_playing),
                                     modifier = Modifier
@@ -1200,8 +1321,8 @@ fun MainScreen(
                                 )
                                 
                                 FastScrollbar(
-                                    listState = mainListState,
-                                    items = sortedSongs,
+                                    listState = pageMainListState,
+                                    items = pageSortedSongs,
                                     headerItemCount = if (showSimplifiedHeader) 1 else 0,
                                     itemKeyOrLetter = { if (activeSortOption == "ALPHABETICAL") it.title else "" },
                                     modifier = Modifier
