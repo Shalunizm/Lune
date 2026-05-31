@@ -113,7 +113,7 @@ fun ResumeScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(bottom = bottomPadding + 16.dp),
+            .padding(top = 8.dp, bottom = bottomPadding + 16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         AnimatedVisibility(

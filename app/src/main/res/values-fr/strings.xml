@@ -48,6 +48,7 @@
     <string name="tab_favorites">Favoris</string>
     <string name="tab_songs">Chansons</string>
     <string name="tab_albums">Artistes</string>
+    <string name="tab_folders">Dossiers</string>
 
     <!-- Player Options -->
     <string name="option_shuffle">Lecture aléatoire</string>
@@ -92,7 +93,6 @@
     <string name="add_to_playlist">Ajouter à la playlist</string>
     <string name="create_playlist">Créer une playlist</string>
     <string name="playlist_name">Nom de la playlist</string>
-    <string name="last_played_playlist">Derniere ecoute</string>
     <string name="edit_playlist_name">Modifier le nom de la playlist</string>
     <string name="cancel">Annuler</string>
     <string name="create">Créer</string>

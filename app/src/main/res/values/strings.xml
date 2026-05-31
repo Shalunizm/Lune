@@ -46,6 +46,7 @@
     <string name="resume_recently_added">Recently Added</string>
     <string name="tab_all">All</string>
     <string name="tab_favorites">Favorites</string>
+    <string name="tab_folders">Folders</string>
     <string name="tab_songs">Songs</string>
     <string name="tab_albums">Artists</string>
 
@@ -92,7 +93,6 @@
     <string name="add_to_playlist">Playlist</string>
     <string name="create_playlist">Create Playlist</string>
     <string name="playlist_name">Playlist Name</string>
-    <string name="last_played_playlist">Last played</string>
     <string name="edit_playlist_name">Edit Playlist Name</string>
     <string name="cancel">Cancel</string>
     <string name="create">Create</string>

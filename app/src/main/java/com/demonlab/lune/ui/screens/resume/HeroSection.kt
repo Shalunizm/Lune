@@ -59,24 +59,24 @@ fun HeroSection(
             in 0..5 -> context.getString(R.string.welcome_early_morning)
             in 6..11 -> context.getString(R.string.welcome_morning)
             in 12..13 -> context.getString(R.string.welcome_noon)
-            in 14..18 -> context.getString(R.string.welcome_afternoon)
-            in 19..22 -> context.getString(R.string.welcome_evening)
+            in 14..17 -> context.getString(R.string.welcome_afternoon)
+            in 18..19 -> context.getString(R.string.welcome_evening)
             else -> context.getString(R.string.welcome_night)
         }
         val icon = when (hour) {
             in 0..5 -> Icons.Default.NightsStay
             in 6..11 -> Icons.Default.WbSunny
             in 12..13 -> Icons.Default.LightMode
-            in 14..18 -> Icons.Default.WbSunny
-            in 19..22 -> Icons.Default.WbTwilight
+            in 14..17 -> Icons.Default.WbSunny
+            in 18..19 -> Icons.Default.WbTwilight
             else -> Icons.Default.NightsStay
         }
         val color = when (hour) {
             in 0..5 -> Color(0xFF1A1A2E)
             in 6..11 -> Color(0xFF29B6F6)
             in 12..13 -> Color(0xFF4FC3F7)
-            in 14..18 -> Color(0xFFFBC02D)
-            in 19..22 -> Color(0xFF3949AB)
+            in 14..17 -> Color(0xFFFBC02D)
+            in 18..19 -> Color(0xFF3949AB)
             else -> Color(0xFF121212)
         }
         Triple(greeting, icon, color)
@@ -283,6 +283,7 @@ private fun StatChip(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier.padding(horizontal = 10.dp)
         ) {
             Icon(

@@ -251,12 +251,6 @@ class PlaybackManager private constructor(private val context: Context) {
         
         isQueueFinished = false
         settings.lastPlayedSongId = song.id
-        if (playlistId != null) {
-            settings.lastPlaylistId = playlistId
-            if (playlistName != null) settings.lastPlaylistName = playlistName
-        } else {
-            settings.lastPlaylistId = -1L
-        }
         
         startStatsTracking()
         // Ensure currentShufflePosition is updated
