@@ -1359,7 +1359,6 @@ fun MainScreen(
                                                     folderName = folder,
                                                     isShuffleActive = isShuffleActive,
                                                     isCurrentListPlaying = isCurrentListPlaying,
-                                                    isPlaying = isPlaying,
                                                     isSortActive = activeSortOption != "ALPHABETICAL" || !activeIsSortAscending,
                                                     onSortClick = { showSortSheet = true },
                                                     onPlayClick = {
@@ -1396,10 +1395,10 @@ fun MainScreen(
                                                 isFirst = isFirst,
                                                 isLast = isLast,
                                                 song = song,
-                                                currentlyPlaying = currentSong?.id == song.id && playbackManager.activePlaylistId == pageContextId,
+                                                currentlyPlaying = playbackManager.currentSong?.id == song.id && playbackManager.activePlaylistId == pageContextId,
                                                 isPlaying = isPlaying,
                                             onClick = {
-                                                if (currentSong?.id != song.id || playbackManager.activePlaylistId != pageContextId) {
+                                                if (playbackManager.currentSong?.id != song.id || playbackManager.activePlaylistId != pageContextId) {
                                                     onCurrentSongChange(song)
                                                     playbackManager.play(song, pageSortedSongs, pageContextId, category = folder)
                                                     onIsPlayingChange(true)
@@ -1415,9 +1414,10 @@ fun MainScreen(
                                     }
                                 }
 
-                                val targetIndex = remember(pageSortedSongs, currentSong, pageContextId, playbackManager.activePlaylistId, showSimplifiedHeader) {
-                                    if (currentSong != null && playbackManager.activePlaylistId == pageContextId) {
-                                        val idx = pageSortedSongs.indexOfFirst { it.id == currentSong.id }
+                                val targetIndex = remember(pageSortedSongs, playbackManager.currentSong, pageContextId, playbackManager.activePlaylistId, showSimplifiedHeader) {
+                                    val cs = playbackManager.currentSong
+                                    if (cs != null && playbackManager.activePlaylistId == pageContextId) {
+                                        val idx = pageSortedSongs.indexOfFirst { it.id == cs.id }
                                         if (idx != -1) idx + (if (showSimplifiedHeader) 1 else 0) else -1
                                     } else -1
                                 }
@@ -1723,10 +1723,10 @@ fun MainScreen(
     ) {
         SearchScreen(
             viewModel = musicViewModel,
-            allFolders = folders,
+            allFolders = visibleFolders,
             onDismiss = { showSearchScreen = false },
             onSongClick = { song, queue, category, parentId ->
-                playbackManager.play(song, queue, parentId, category)
+                playbackManager.play(song, queue, playlistId = parentId, category = category)
                 onCurrentSongChange(song)
                 onIsPlayingChange(true)
                 onSelectedFolderChange(category)
@@ -1743,7 +1743,8 @@ fun MainScreen(
                 onSelectedFolderChange("PLAYLISTS")
             },
             onNavigateToFolder = { folder ->
-                onSelectedFolderChange(folder)
+                onSelectedFolderChange("FOLDERS")
+                selectedFolderItem = folder
                 showSearchScreen = false
             },
             onOptionsClick = { song ->
@@ -2427,7 +2428,6 @@ fun SongsListHeader(
     songs: List<Song>,
     isShuffleActive: Boolean,
     isCurrentListPlaying: Boolean,
-    isPlaying: Boolean,
     isSortActive: Boolean,
     onSortClick: () -> Unit,
     onPlayClick: () -> Unit,
@@ -2435,6 +2435,10 @@ fun SongsListHeader(
     modifier: Modifier = Modifier,
     folderName: String = ""
 ) {
+    val context = LocalContext.current
+    val playbackManager = remember { PlaybackManager.getInstance(context) }
+    val isPlaying = playbackManager.isPlaying
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -6742,7 +6746,7 @@ fun SearchScreen(
                     itemsIndexed(songs) { index, song ->
                         val isFirst = index == 0
                         val isLast = index == songs.lastIndex
-                        val isCurrent = song.id == currentlyPlayingId && activeCategory == tagName
+                        val isCurrent = song.id == currentlyPlayingId && activeCategory == "FOLDERS"
                         SongItem(
                             isFirst = isFirst,
                             isLast = isLast,
@@ -6750,7 +6754,7 @@ fun SearchScreen(
                             currentlyPlaying = isCurrent,
                             isPlaying = isPlaying && isCurrent,
                             onClick = {
-                                onSongClick(song, songs, tagName, tagName.hashCode().toLong())
+                                onSongClick(song, songs, "FOLDERS", tagName.hashCode().toLong())
                                 onNavigateToFolder(tagName)
                             },
                             onOptionsClick = { onOptionsClick(song) }
