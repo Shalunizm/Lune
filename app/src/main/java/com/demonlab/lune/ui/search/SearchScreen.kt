@@ -1,0 +1,444 @@
+package com.demonlab.lune.ui.search
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.demonlab.lune.R
+import com.demonlab.lune.data.Playlist
+import com.demonlab.lune.tools.PlaybackManager
+import com.demonlab.lune.tools.Song
+import com.demonlab.lune.ui.components.SongItem
+import com.demonlab.lune.ui.data.Album
+import com.demonlab.lune.ui.playlist.PlaylistPreviewCovers
+import com.demonlab.lune.ui.viewmodels.MusicViewModel
+
+data class SearchResults(
+    val songs: List<Song>,
+    val favoriteSongs: List<Song>,
+    val albumResults: Map<Album, List<Song>>,
+    val playlistResults: Map<Playlist, List<Song>>,
+    val tagResults: Map<String, List<Song>>
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchScreen(
+    viewModel: MusicViewModel,
+    allFolders: List<String>,
+    onDismiss: () -> Unit,
+    onSongClick: (Song, List<Song>, String, Long) -> Unit,
+    onNavigateToAlbum: (Album) -> Unit,
+    onNavigateToPlaylist: (Playlist) -> Unit,
+    onNavigateToFolder: (String) -> Unit,
+    onOptionsClick: (Song) -> Unit,
+    currentlyPlayingId: Long?,
+    activeCategory: String?,
+    activePlaylistId: Long?,
+    onFavoriteClick: ((Song) -> Unit)? = null
+) {
+    var query by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+    val isPlaying = PlaybackManager.getInstance(LocalContext.current).isPlaying
+    
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    val allSongs = remember(viewModel.filteredSongs, allFolders) {
+        viewModel.filteredSongs.filter { song -> 
+            allFolders.contains(song.folderName) 
+        }
+    }
+    val allAlbums = remember(allSongs) {
+        allSongs.groupBy { it.artist ?: "Desconocido" }
+            .map { (artistName, songs) -> 
+                Album(
+                    id = artistName.hashCode().toLong(), 
+                    name = artistName, 
+                    artist = "", 
+                    albumArtUri = songs.first().albumArtUri, 
+                    coverUrl = songs.first().coverUrl, 
+                    songs = songs.sortedWith(compareBy({ it.album }, { it.title }))
+                )
+            }.sortedBy { it.name }
+    }
+    val allPlaylists = viewModel.playlists
+    val playlistMappings = viewModel.playlistMappings
+
+    val sTabAll = stringResource(R.string.tab_all)
+    val sTabFavorites = stringResource(R.string.tab_favorites)
+    val sTabAlbums = stringResource(R.string.tab_albums)
+    val sPlaylists = stringResource(R.string.playlists)
+
+    val searchResults = remember(query, allSongs, allAlbums, allPlaylists, allFolders, sTabFavorites, playlistMappings) {
+        if (query.isBlank()) return@remember SearchResults(emptyList(), emptyList(), emptyMap(), emptyMap(), emptyMap())
+        
+        val searchTerms = query.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }
+        
+        val matchedSongs = allSongs.filter { song ->
+            val searchTarget = "${song.title} ${song.artist}".lowercase()
+            searchTerms.all { term -> searchTarget.contains(term) }
+        }
+
+        val albumResults = mutableMapOf<Album, List<Song>>()
+        allAlbums.forEach { album ->
+            val nameMatches = searchTerms.all { term -> album.name.lowercase().contains(term) }
+            val matchingSongs = album.songs.filter { song ->
+                val searchTarget = "${song.title} ${song.artist}".lowercase()
+                searchTerms.all { term -> searchTarget.contains(term) }
+            }
+            if (nameMatches || matchingSongs.isNotEmpty()) {
+                albumResults[album] = matchingSongs
+            }
+        }
+
+        val playlistResults = mutableMapOf<Playlist, List<Song>>()
+        allPlaylists.forEach { playlist ->
+            val nameMatches = searchTerms.all { term -> playlist.name.lowercase().contains(term) }
+            
+            val playlistSongs = playlistMappings.filter { it.playlistId == playlist.id }
+                .mapNotNull { mapping -> allSongs.find { it.id == mapping.songId } }
+                
+            val matchingSongs = playlistSongs.filter { song ->
+                val searchTarget = "${song.title} ${song.artist}".lowercase()
+                searchTerms.all { term -> searchTarget.contains(term) }
+            }
+            
+            if (nameMatches || matchingSongs.isNotEmpty()) {
+                playlistResults[playlist] = matchingSongs
+            }
+        }
+
+        val favoriteSongs = matchedSongs.filter { it.isFavorite }
+
+        val tagResults = mutableMapOf<String, List<Song>>()
+        
+        if (favoriteSongs.isNotEmpty()) {
+            tagResults[sTabFavorites] = favoriteSongs
+        }
+
+        allFolders.forEach { folder ->
+            if (folder.lowercase() == sTabFavorites.lowercase() || folder.lowercase() == "favorites" || folder.lowercase() == "favoritos") {
+                return@forEach
+            }
+            val nameMatches = searchTerms.all { term -> folder.lowercase().contains(term) }
+            if (nameMatches) {
+                val folderSongs = allSongs.filter { it.folderName == folder && matchedSongs.contains(it) }
+                tagResults[folder] = folderSongs
+            }
+        }
+
+        matchedSongs.forEach { song ->
+            val folder = song.folderName ?: "Desconocido"
+            if (allFolders.contains(folder) && !tagResults.containsKey(folder)) {
+                val folderSongs = allSongs.filter { it.folderName == folder && matchedSongs.contains(it) }
+                tagResults[folder] = folderSongs
+            }
+        }
+
+        SearchResults(matchedSongs, favoriteSongs, albumResults, playlistResults, tagResults)
+    }
+
+    BackHandler(onBack = onDismiss)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 8.dp)
+                            .focusRequester(focusRequester),
+                        placeholder = { Text(stringResource(R.string.search_hint), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack, 
+                                    contentDescription = "Back",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            if (searchResults.songs.isNotEmpty()) {
+                item {
+                    Text(
+                        text = sTabAll,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clickable { onNavigateToFolder("ALL") }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+                itemsIndexed(searchResults.songs) { index, song ->
+                    val isFirst = index == 0
+                    val isLast = index == searchResults.songs.lastIndex
+                    val isCurrent = song.id == currentlyPlayingId && activeCategory == "ALL"
+                    SongItem(
+                        isFirst = isFirst,
+                        isLast = isLast,
+                        song = song,
+                        currentlyPlaying = isCurrent,
+                        isPlaying = isPlaying && isCurrent,
+                        onClick = { onSongClick(song, allSongs, "ALL", -100L) },
+                        onOptionsClick = { onOptionsClick(song) },
+                        onFavoriteClick = onFavoriteClick
+                    )
+                }
+            }
+
+            searchResults.tagResults[sTabFavorites]?.let { songs ->
+                if (songs.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = sTabFavorites,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clickable { onNavigateToFolder("FAVORITES") }
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                    itemsIndexed(songs) { index, song ->
+                        val isFirst = index == 0
+                        val isLast = index == songs.lastIndex
+                        val isCurrent = song.id == currentlyPlayingId && activeCategory == "FAVORITES"
+                        SongItem(
+                            isFirst = isFirst,
+                            isLast = isLast,
+                            song = song,
+                            currentlyPlaying = isCurrent,
+                            isPlaying = isPlaying && isCurrent,
+                            onClick = { onSongClick(song, searchResults.favoriteSongs, "FAVORITES", -200L) },
+                            onOptionsClick = { onOptionsClick(song) },
+                            onFavoriteClick = onFavoriteClick
+                        )
+                    }
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ListItem(
+                            headlineContent = { Text(sTabFavorites) },
+                            leadingContent = { 
+                                Icon(Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary) 
+                            },
+                            modifier = Modifier.clickable { onNavigateToFolder("FAVORITES") }
+                        )
+                    }
+                }
+            }
+
+            if (searchResults.playlistResults.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.playlists),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+                val playlistList = searchResults.playlistResults.toList()
+                if (playlistList.isNotEmpty()) {
+                    for ((playlist, matchingSongs) in playlistList) {
+                        item {
+                            val context = LocalContext.current
+                            ListItem(
+                                headlineContent = { Text(playlist.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                leadingContent = {
+                                    PlaylistPreviewCovers(playlistId = playlist.id, viewModel = viewModel, size = 50.dp)
+                                },
+                                modifier = Modifier.clickable { onNavigateToPlaylist(playlist) }
+                            )
+                        }
+                        itemsIndexed(matchingSongs) { index, song ->
+                            val isFirst = index == 0
+                            val isLast = index == matchingSongs.lastIndex
+                            val isCurrent = song.id == currentlyPlayingId && activeCategory == "PLAYLISTS" && activePlaylistId == playlist.id
+                            SongItem(
+                                isFirst = isFirst,
+                                isLast = isLast,
+                                song = song,
+                                currentlyPlaying = isCurrent,
+                                isPlaying = isPlaying && isCurrent,
+                                modifier = Modifier.padding(start = 32.dp),
+                                onClick = { 
+                                    val fullPlaylistSongs = playlistMappings.filter { it.playlistId == playlist.id }
+                                        .mapNotNull { mapping -> allSongs.find { s -> s.id == mapping.songId } }
+                                    onSongClick(song, fullPlaylistSongs, "PLAYLISTS", playlist.id) 
+                                    onNavigateToPlaylist(playlist)
+                                },
+                                onOptionsClick = { onOptionsClick(song) },
+                                onFavoriteClick = onFavoriteClick
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (searchResults.albumResults.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.tab_albums),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+                val albumList = searchResults.albumResults.toList()
+                if (albumList.isNotEmpty()) {
+                    for ((album, matchingSongs) in albumList) {
+                        item {
+                            val context = LocalContext.current
+                            ListItem(
+                                headlineContent = { Text(album.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                supportingContent = { Text("${album.songs.size} canciones") },
+                                leadingContent = {
+                                    AsyncImage(
+                                        model = album.songs.firstOrNull()?.albumArtUri ?: R.drawable.ic_launcher_foreground,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                },
+                                modifier = Modifier.clickable { onNavigateToAlbum(album) }
+                            )
+                        }
+                        itemsIndexed(matchingSongs) { index, song ->
+                            val isFirst = index == 0
+                            val isLast = index == matchingSongs.lastIndex
+                            val isCurrent = song.id == currentlyPlayingId && activeCategory == "ALBUMS" && activePlaylistId == album.id
+                            SongItem(
+                                isFirst = isFirst,
+                                isLast = isLast,
+                                song = song,
+                                currentlyPlaying = isCurrent,
+                                isPlaying = isPlaying && isCurrent,
+                                modifier = Modifier.padding(start = 32.dp),
+                                onClick = { 
+                                    onSongClick(song, album.songs, "ALBUMS", album.id)
+                                    onNavigateToAlbum(album)
+                                },
+                                onOptionsClick = { onOptionsClick(song) },
+                                onFavoriteClick = onFavoriteClick
+                            )
+                        }
+                    }
+                }
+            }
+
+            searchResults.tagResults.filterKeys { it != sTabFavorites }.forEach { (tagName, songs) ->
+                if (songs.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = tagName,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .clickable { onNavigateToFolder(tagName) }
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                    itemsIndexed(songs) { index, song ->
+                        val isFirst = index == 0
+                        val isLast = index == songs.lastIndex
+                        val isCurrent = song.id == currentlyPlayingId && activeCategory == "FOLDERS"
+                        SongItem(
+                            isFirst = isFirst,
+                            isLast = isLast,
+                            song = song,
+                            currentlyPlaying = isCurrent,
+                            isPlaying = isPlaying && isCurrent,
+                            onClick = {
+                                onSongClick(song, songs, "FOLDERS", tagName.hashCode().toLong())
+                                onNavigateToFolder(tagName)
+                            },
+                            onOptionsClick = { onOptionsClick(song) },
+                            onFavoriteClick = onFavoriteClick
+                        )
+                    }
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ListItem(
+                            headlineContent = { Text(tagName) },
+                            leadingContent = { 
+                                Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary) 
+                            },
+                            modifier = Modifier.clickable { onNavigateToFolder(tagName) }
+                        )
+                    }
+                }
+            }
+            
+            if (query.isNotBlank() && searchResults.songs.isEmpty() && searchResults.albumResults.isEmpty() && searchResults.playlistResults.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text(text = "No results found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+    }
+}
