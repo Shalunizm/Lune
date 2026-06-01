@@ -46,7 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -1004,7 +1004,7 @@ fun FullPlayer(
                                 )
 
                                 PlayerActionButton(
-                                    icon = Icons.Default.QueueMusic,
+                                    icon = Icons.AutoMirrored.Filled.QueueMusic,
                                     label = stringResource(R.string.player_queue),
                                     onClick = { showQueueSheet = true },
                                     shape = RoundedCornerShape(4.dp),

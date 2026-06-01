@@ -109,6 +109,8 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Repeat
@@ -133,7 +135,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -624,7 +626,7 @@ fun MainScreen(
         }
     }
 
-    val vibrator = LocalContext.current.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    val vibrator = LocalContext.current.getSystemService(android.os.Vibrator::class.java)!!
 
     val playNext = {
         if (settingsManager.isHapticVibrationEnabled) {
@@ -718,7 +720,7 @@ fun MainScreen(
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 CircularProgressIndicator(
-                                    progress = undoProgress,
+                                    progress = { undoProgress },
                                     modifier = Modifier.fillMaxSize(),
                                     color = MaterialTheme.colorScheme.primary,
                                     strokeWidth = 2.dp,
@@ -835,7 +837,7 @@ fun MainScreen(
                             }
                         }
                     },
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         scrolledContainerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -983,7 +985,7 @@ fun MainScreen(
                                                         modifier = Modifier.size(20.dp)
                                                     )
                                                     "PLAYLISTS" -> Icon(
-                                                        imageVector = Icons.Default.QueueMusic,
+                                                        imageVector = Icons.AutoMirrored.Filled.QueueMusic,
                                                         contentDescription = label,
                                                         tint = iconTint,
                                                         modifier = Modifier.size(20.dp)
@@ -2025,7 +2027,7 @@ fun PlaylistPreviewCovers(
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         if (covers.isEmpty()) {
-            Icon(Icons.Default.PlaylistPlay, null, modifier = Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            Icon(Icons.AutoMirrored.Filled.PlaylistPlay, null, modifier = Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (covers.size == 1) {
@@ -2123,7 +2125,7 @@ fun PlaylistListScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.Default.QueueMusic,
+                            Icons.AutoMirrored.Filled.QueueMusic,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(28.dp)
@@ -2259,7 +2261,7 @@ fun PlaylistDetailView(
 ) {
     val playbackManager = PlaybackManager.getInstance(LocalContext.current)
     val settingsManager = SettingsManager.getInstance(LocalContext.current)
-    val vibrator = LocalContext.current.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    val vibrator = LocalContext.current.getSystemService(android.os.Vibrator::class.java)!!
     val listState = rememberLazyListState()
     var showPlaylistOptions by remember { mutableStateOf(false) }
     var showAddSongsDialog by remember { mutableStateOf(false) }
@@ -2631,7 +2633,7 @@ fun AlbumDetailView(
     val context = LocalContext.current
     val playbackManager = PlaybackManager.getInstance(context)
     val settingsManager = SettingsManager.getInstance(context)
-    val vibrator = context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    val vibrator = context.getSystemService(android.os.Vibrator::class.java)!!
     val listState = rememberLazyListState()
     val isPlaying = playbackManager.isPlaying
 
@@ -3027,7 +3029,7 @@ fun SearchScreen(
 
     val allSongs = remember(viewModel.filteredSongs, allFolders) {
         viewModel.filteredSongs.filter { song -> 
-            song.folderName == null || allFolders.contains(song.folderName) 
+            allFolders.contains(song.folderName) 
         }
     }
     val allAlbums = remember(allSongs) {
@@ -3549,7 +3551,7 @@ fun FolderDetailView(
 ) {
     val playbackManager = PlaybackManager.getInstance(LocalContext.current)
     val settingsManager = SettingsManager.getInstance(LocalContext.current)
-    val vibrator = LocalContext.current.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    val vibrator = LocalContext.current.getSystemService(android.os.Vibrator::class.java)!!
     val listState = rememberLazyListState()
     val isPlaying = playbackManager.isPlaying
 
