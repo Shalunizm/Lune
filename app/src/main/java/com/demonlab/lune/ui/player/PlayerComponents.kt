@@ -1050,17 +1050,6 @@ fun FullPlayer(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-
-            if (showWaveform) {
-                WaveformVisualizer(
-                    modifier = Modifier
-                        .height(45.dp)
-                        .fillMaxWidth()
-                        .alpha(0.6f),
-                    magnitudes = visualizerData,
-                    color = if (useBlurControls) Color.White else MaterialTheme.colorScheme.primary
-                )
-            }
         }
 
         Box(
@@ -1114,6 +1103,18 @@ fun FullPlayer(
                     )
                 }
         ) {
+            if (showWaveform) {
+                WaveformVisualizer(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .height(80.dp)
+                        .fillMaxWidth()
+                        .alpha(0.6f),
+                    magnitudes = visualizerData,
+                    color = if (useBlurControls) Color.White else MaterialTheme.colorScheme.primary
+                )
+            }
+
             if (isLandscape) {
                 Row(
                     modifier = Modifier

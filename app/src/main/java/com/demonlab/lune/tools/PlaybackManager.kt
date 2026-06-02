@@ -524,6 +524,7 @@ class PlaybackManager private constructor(private val context: Context) {
     fun updateCurrentSongState(song: Song) {
         currentSong = song
         isPlaying = true
+        startVisualizer()
         // Sync shuffle position if needed
         if (isShuffle && shuffledIndices.isNotEmpty()) {
             val idx = activePlaylist.indexOfFirst { it.id == song.id }
