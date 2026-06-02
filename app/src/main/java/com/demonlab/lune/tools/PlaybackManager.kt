@@ -84,6 +84,7 @@ class PlaybackManager private constructor(private val context: Context) {
 
     private val managerScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var statsJob: Job? = null
+    private var pendingStatsTimeMs: Long = 0
     
     var sleepTimerMinutes by mutableStateOf(0) // 0 means off
     private var sleepTimerHandler: android.os.Handler? = null
@@ -224,6 +225,7 @@ class PlaybackManager private constructor(private val context: Context) {
     }
 
     fun play(song: Song, playlist: List<Song> = emptyList(), playlistId: Long? = null, playlistName: String? = null, category: String? = null, fromQueue: Boolean = false) {
+        flushPendingStats()
         currentSong = song
         isPlaying = true
         if (playlist.isNotEmpty() && (playlist != activePlaylist || activePlaylist.isEmpty() || playlistId != activePlaylistId)) {
@@ -535,6 +537,7 @@ class PlaybackManager private constructor(private val context: Context) {
     }
 
     fun pause() {
+        flushPendingStats()
         isPlaying = false
         musicService?.pause()
         stopStatsTracking()
@@ -558,6 +561,7 @@ class PlaybackManager private constructor(private val context: Context) {
     }
 
     fun stop() {
+        flushPendingStats()
         isPlaying = false
         musicService?.stopSelf()
         stopStatsTracking()
@@ -568,39 +572,40 @@ class PlaybackManager private constructor(private val context: Context) {
         statsJob = managerScope.launch {
             while (isActive) {
                 delay(1000)
-                updateStats()
+                val now = System.currentTimeMillis()
+                if (!isSameDay(now, settings.lastStatsResetTimestamp)) {
+                    pendingStatsTimeMs = 0
+                    dailyListeningTime = 0
+                    settings.dailyListeningTime = 0
+                    settings.lastStatsResetTimestamp = now
+                } else {
+                    pendingStatsTimeMs += 1000
+                    dailyListeningTime += 1000
+                    settings.dailyListeningTime = dailyListeningTime
+                }
             }
         }
+    }
+
+    private fun flushPendingStats() {
+        if (pendingStatsTimeMs == 0L) return
+        val song = currentSong
+        if (song != null) {
+            updatePlaybackStats("SONG", "SONG_${song.id}", timeMs = pendingStatsTimeMs)
+            if (song.artist.isNotBlank() && song.artist != "<unknown>") {
+                updatePlaybackStats("ARTIST", "ARTIST_${song.artist}", timeMs = pendingStatsTimeMs)
+            }
+        }
+        val pId = activePlaylistId
+        if (pId != null && pId != -1L) {
+            updatePlaybackStats("PLAYLIST", "PLAYLIST_$pId", timeMs = pendingStatsTimeMs)
+        }
+        pendingStatsTimeMs = 0
     }
 
     private fun stopStatsTracking() {
         statsJob?.cancel()
         statsJob = null
-    }
-
-    private fun updateStats() {
-        val now = System.currentTimeMillis()
-        if (!isSameDay(now, settings.lastStatsResetTimestamp)) {
-            dailyListeningTime = 0
-            settings.dailyListeningTime = 0
-            settings.lastStatsResetTimestamp = now
-        } else {
-            dailyListeningTime += 1000
-            settings.dailyListeningTime = dailyListeningTime
-        }
-
-        // Detailed Stats
-        val song = currentSong
-        if (song != null) {
-            updatePlaybackStats("SONG", "SONG_${song.id}", timeMs = 1000)
-            if (song.artist.isNotBlank() && song.artist != "<unknown>") {
-                updatePlaybackStats("ARTIST", "ARTIST_${song.artist}", timeMs = 1000)
-            }
-        }
-        val pId = activePlaylistId
-        if (pId != null && pId != -1L) {
-            updatePlaybackStats("PLAYLIST", "PLAYLIST_$pId", timeMs = 1000)
-        }
     }
 
     private fun updatePlaybackStats(type: String, id: String, timeMs: Long = 0, incrementCount: Boolean = false) {
