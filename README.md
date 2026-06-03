@@ -21,6 +21,17 @@
     </p>
 </p>
 
+## 🔒 Privacy & Security
+
+Lune is built with privacy as a core principle:
+
+- **Zero Internet Access**: The app does not hold the `INTERNET` permission. It never connects to any network, server, or service.
+- **No Trackers**: Zero analytics SDKs, no telemetry, no crash reporters, no ads — nothing phones home.
+- **100% Offline**: All audio is played from your device's local storage. No streaming, no account required, no cloud dependency.
+- **No Data Collection**: Lune does not collect, store, or transmit any personal data. Everything stays on your device.
+- **Open Source**: The entire source code is publicly available for audit. What you see is what you get.
+- **Minimal Permissions**: Only the permissions strictly necessary for local music playback and audio visualization are requested.
+
 ## 📱 F-Droid Information
 
 Lune is designed to be fully open-source and compatible with F-Droid's build standards:
