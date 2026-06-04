@@ -538,8 +538,9 @@ class MusicService : MediaBrowserServiceCompat() {
                     }
                 }
 
-                val steps = 100
-                val interval = (fadeDurationMs / steps).coerceAtLeast(10L)
+                val targetInterval = 50L
+                val steps = (fadeDurationMs / targetInterval).toInt().coerceIn(10, 100)
+                val interval = fadeDurationMs / steps
 
                 for (i in 1..steps) {
                     if (!isCrossfading) break
