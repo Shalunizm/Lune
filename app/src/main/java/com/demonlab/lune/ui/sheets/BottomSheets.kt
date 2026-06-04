@@ -967,16 +967,6 @@ fun PlayerOptionsBottomSheet(
                     active = playbackManager.isFullPlayerVisualizerEnabled || playbackManager.isMiniPlayerVisualizerEnabled,
                     onClick = onShowVisualizerSettings
                 )
-
-                // Lyrics
-                val hasLyrics = playbackManager.currentLyrics != null
-                OptionButton(
-                    icon = Icons.Default.Lyrics,
-                    label = stringResource(R.string.option_lyrics),
-                    active = hasLyrics,
-                    enabled = hasLyrics,
-                    onClick = onShowLyrics
-                )
             }
         }
     }

@@ -134,7 +134,7 @@ class MusicService : MediaBrowserServiceCompat() {
                                 val songId = mediaId.substringAfter("song_allsongs_").toLongOrNull() ?: return@launch
                                 val songs = provider.getCachedSongs().filter { !hiddenFolders.contains(it.folderName) }
                                 val targetSong = songs.find { it.id == songId } ?: return@launch
-                                playbackManager.play(targetSong, songs, -100L, category = "ALL")
+                                playbackManager.play(targetSong, songs, -100L, category = "ALL", shuffleMode = playbackManager.isShuffle)
                             }
                             mediaId.startsWith("song_favs_") -> {
                                 val songId = mediaId.substringAfter("song_favs_").toLongOrNull() ?: return@launch

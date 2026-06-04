@@ -1114,9 +1114,9 @@ fun MainScreen(
                                 bottomPadding = bottomPadding,
                                 currentSong = currentSong,
                                 isPlaying = isPlaying,
-                                onSongClick = { song, listContext ->
+                                    onSongClick = { song, listContext ->
                                     onCurrentSongChange(song)
-                                    playbackManager.play(song, listContext, -100L, category = "ALL")
+                                    playbackManager.play(song, listContext, -100L, category = "ALL", shuffleMode = playbackManager.isShuffle)
                                     onIsPlayingChange(true)
                                     onIsPlayerExpandedChange(true)
                                 },
@@ -1192,7 +1192,7 @@ fun MainScreen(
                                         playbackManager.checkPlaylistStatus()
                                         if (isActive) {
                                             if (musicViewModel.allSongs.isNotEmpty()) {
-                                                playbackManager.play(currentSong ?: musicViewModel.allSongs[0], musicViewModel.allSongs, -100L, category = "ALL")
+                                                playbackManager.play(currentSong ?: musicViewModel.allSongs[0], musicViewModel.allSongs, -100L, category = "ALL", shuffleMode = playbackManager.isShuffle)
                                             }
                                         }
                                     }
@@ -1345,7 +1345,7 @@ fun MainScreen(
                                                         } else if (pageSortedSongs.isNotEmpty()) {
                                                             val songToPlay = if (isShuffleActive) pageSortedSongs.random() else pageSortedSongs[0]
                                                             onCurrentSongChange(songToPlay)
-                                                            playbackManager.play(songToPlay, pageSortedSongs, pageContextId, category = folder)
+                                                            playbackManager.play(songToPlay, pageSortedSongs, pageContextId, category = folder, shuffleMode = isShuffleActive)
                                                             onIsPlayingChange(true)
                                                         }
                                                     },
@@ -1374,7 +1374,7 @@ fun MainScreen(
                                             onClick = {
                                                 if (playbackManager.currentSong?.id != song.id || playbackManager.activePlaylistId != pageContextId) {
                                                     onCurrentSongChange(song)
-                                                    playbackManager.play(song, pageSortedSongs, pageContextId, category = folder)
+                                                    playbackManager.play(song, pageSortedSongs, pageContextId, category = folder, shuffleMode = isShuffleActive)
                                                     onIsPlayingChange(true)
                                                 }
                                                 onIsPlayerExpandedChange(true)

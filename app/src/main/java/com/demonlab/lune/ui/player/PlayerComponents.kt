@@ -1000,49 +1000,81 @@ fun FullPlayer(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(horizontal = 32.dp)
                             .graphicsLayer {
                                 scaleX = pillAnim.value
                                 scaleY = pillAnim.value
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(28.dp),
-                            color = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier.padding(horizontal = 32.dp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(vertical = 4.dp, horizontal = 6.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Surface(
+                                shape = RoundedCornerShape(28.dp),
+                                color = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh,
                             ) {
-                                PlayerActionButton(
-                                    icon = playbackManager.currentOutputIcon,
-                                    label = playbackManager.currentOutputName,
-                                    onClick = { showVolumeBar = true },
-                                    useBlurControls = useBlurControls
-                                )
+                                Row(
+                                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    PlayerActionButton(
+                                        icon = playbackManager.currentOutputIcon,
+                                        label = playbackManager.currentOutputName,
+                                        onClick = { showVolumeBar = true },
+                                        useBlurControls = useBlurControls
+                                    )
 
-                                PlayerActionButton(
-                                    icon = Icons.AutoMirrored.Filled.QueueMusic,
-                                    label = stringResource(R.string.player_queue),
-                                    onClick = { showQueueSheet = true },
-                                    useBlurControls = useBlurControls
-                                )
+                                    PlayerActionButton(
+                                        icon = Icons.AutoMirrored.Filled.QueueMusic,
+                                        label = stringResource(R.string.player_queue),
+                                        onClick = { showQueueSheet = true },
+                                        useBlurControls = useBlurControls
+                                    )
 
-                                PlayerActionButton(
-                                    icon = Icons.Default.Speed,
-                                    label = stringResource(R.string.option_speed),
-                                    onClick = { showSpeedBar = true },
-                                    useBlurControls = useBlurControls
-                                )
+                                    PlayerActionButton(
+                                        icon = Icons.Default.Speed,
+                                        label = stringResource(R.string.option_speed),
+                                        onClick = { showSpeedBar = true },
+                                        useBlurControls = useBlurControls
+                                    )
 
-                                PlayerActionButton(
-                                    icon = Icons.Default.MoreHoriz,
-                                    label = stringResource(R.string.player_options),
-                                    onClick = { showOptionsSheet = true },
-                                    useBlurControls = useBlurControls
-                                )
+                                    PlayerActionButton(
+                                        icon = Icons.Default.MoreHoriz,
+                                        label = stringResource(R.string.player_options),
+                                        onClick = { showOptionsSheet = true },
+                                        useBlurControls = useBlurControls
+                                    )
+                                }
+                            }
+
+                            val hasLyrics = playbackManager.currentLyrics != null
+                            val lyricsTint by animateColorAsState(
+                                targetValue = if (hasLyrics) {
+                                    if (useBlurControls) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                },
+                                label = "lyricsTint"
+                            )
+                            Surface(
+                                shape = CircleShape,
+                                color = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.size(36.dp).bounceClick()
+                            ) {
+                                IconButton(
+                                    onClick = onShowLyrics,
+                                    enabled = hasLyrics
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lyrics,
+                                        contentDescription = stringResource(R.string.option_lyrics),
+                                        modifier = Modifier.size(20.dp),
+                                        tint = lyricsTint
+                                    )
+                                }
                             }
                         }
                     }
