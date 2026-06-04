@@ -477,26 +477,23 @@ class MusicService : MediaBrowserServiceCompat() {
         playbackManager.isTransitioning = true
         val fadeDurationMs = 12000L // 12s per user request
 
-            secondaryPlayer?.setOnCompletionListener(null)
-            secondaryPlayer?.setOnErrorListener(null)
-            secondaryPlayer?.release()
+        secondaryPlayer?.setOnCompletionListener(null)
+        secondaryPlayer?.setOnErrorListener(null)
+        secondaryPlayer?.release()
 
-            secondaryPlayer = MediaPlayer()
+        secondaryPlayer = MediaPlayer()
 
-            playbackManager.clearLyrics()
-            serviceScope.launch {
-                extractLyrics(nextSong)
-            }
+        playbackManager.clearLyrics()
+        serviceScope.launch {
+            extractLyrics(nextSong)
+        }
 
-            serviceScope.launch {
+        serviceScope.launch {
+            try {
                 withContext(Dispatchers.IO) {
-                    try {
-                        secondaryPlayer?.setDataSource(applicationContext, nextSong.uri)
-                        secondaryPlayer?.setVolume(0f, 0f)
-                        secondaryPlayer?.prepare()
-                    } catch (e: Exception) {
-                        Log.e("MusicService", "Failed to prepare secondary player", e)
-                    }
+                    secondaryPlayer?.setDataSource(applicationContext, nextSong.uri)
+                    secondaryPlayer?.setVolume(0f, 0f)
+                    secondaryPlayer?.prepare()
                 }
 
                 val sessionId = secondaryPlayer?.audioSessionId ?: 0
@@ -538,18 +535,14 @@ class MusicService : MediaBrowserServiceCompat() {
 
                     val normalizedNext = i.toFloat() / steps
 
-                    // Crossfade curves
                     val volNext: Float
                     val volCurrent: Float
 
                     if (isAutomix) {
-                        // Constant Power Crossfade for Automix: Sum of squares = 1.0
-                        // This prevents volume spikes and dips.
                         val angle = (normalizedNext * Math.PI / 2)
                         volNext = Math.sin(angle).toFloat()
                         volCurrent = Math.cos(angle).toFloat()
                     } else {
-                        // Standard symmetric crossfade (Power curve)
                         volNext = normalizedNext * normalizedNext
                         val normalizedCurrent = 1f - normalizedNext
                         volCurrent = normalizedCurrent * normalizedCurrent
@@ -566,7 +559,6 @@ class MusicService : MediaBrowserServiceCompat() {
                 mediaPlayer = secondaryPlayer
                 secondaryPlayer = null
 
-                // Swap effects: release old primary, promote secondary to primary
                 equalizer?.release()
                 bassBoost?.release()
                 virtualizer?.release()
@@ -587,16 +579,23 @@ class MusicService : MediaBrowserServiceCompat() {
                     oldPlayer?.release()
                 }
 
-                isCrossfading = false
-            playbackManager.isTransitioning = false
-            PlaybackManager.getInstance(applicationContext).updateCurrentSongState(nextSong)
+                PlaybackManager.getInstance(applicationContext).updateCurrentSongState(nextSong)
 
-            val art = fetchAlbumArt(nextSong)
-            updateMetadata(nextSong, art)
-            updatePlaybackState()
-            showNotification(nextSong, true, art)
-            extractLyrics(nextSong) // Keep one at the end just in case or for state sync
-            startCrossfadeMonitor()
+                val art = fetchAlbumArt(nextSong)
+                updateMetadata(nextSong, art)
+                updatePlaybackState()
+                showNotification(nextSong, true, art)
+            } catch (e: Exception) {
+                Log.e("MusicService", "Crossfade failed: ${nextSong.title}", e)
+                secondaryPlayer?.setOnCompletionListener(null)
+                secondaryPlayer?.setOnErrorListener(null)
+                secondaryPlayer?.release()
+                secondaryPlayer = null
+            } finally {
+                isCrossfading = false
+                playbackManager.isTransitioning = false
+                startCrossfadeMonitor()
+            }
         }
     }
 
