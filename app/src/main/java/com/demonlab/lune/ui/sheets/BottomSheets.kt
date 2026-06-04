@@ -902,14 +902,6 @@ fun PlayerOptionsBottomSheet(
                     onClick = { playbackManager.toggleRepeatMode() }
                 )
 
-                // Shuffle
-                OptionButton(
-                    icon = Icons.Default.Shuffle,
-                    label = stringResource(R.string.option_shuffle),
-                    active = playbackManager.isShuffle,
-                    onClick = { playbackManager.toggleShuffle() }
-                )
-
                 // Crossfade
                 OptionButton(
                     icon = Icons.Default.Tune,

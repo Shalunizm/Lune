@@ -256,58 +256,61 @@ fun PlaylistDetailView(
                                 }
                                 
                                 Spacer(modifier = Modifier.width(8.dp))
-                                
-                                Surface(
-                                    onClick = { 
-                                        if (isCurrentPlaylistPlaying) {
-                                            playbackManager.toggleShuffle()
-                                            localShuffleState = playbackManager.isShuffle
-                                        } else {
-                                            localShuffleState = !localShuffleState
-                                            settingsManager.setPlaylistShuffle(playlist.id, localShuffleState)
-                                        }
-                                    },
-                                    shape = CircleShape,
-                                    color = if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-                                    modifier = Modifier.size(36.dp)
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            Icons.Default.Shuffle,
-                                            contentDescription = null,
-                                            tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                    Surface(
+                                        onClick = { 
+                                            if (isCurrentPlaylistPlaying) {
+                                                playbackManager.toggleShuffle()
+                                                localShuffleState = playbackManager.isShuffle
+                                            } else {
+                                                localShuffleState = !localShuffleState
+                                                settingsManager.setPlaylistShuffle(playlist.id, localShuffleState)
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                                        color = if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                        modifier = Modifier.size(44.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.Default.Shuffle,
+                                                contentDescription = null,
+                                                tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+                                    Surface(
+                                        onClick = { 
+                                            if (settingsManager.isHapticVibrationEnabled) {
+                                                vibrator.triggerLightVibration()
+                                            }
+                                            if (isCurrentPlaylistPlaying) {
+                                                if (isPlaying) playbackManager.pause() else playbackManager.resume()
+                                            } else if (sortedSongs.isNotEmpty()) {
+                                                val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
+                                                onSongClick(songToPlay, sortedSongs)
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 22.dp, bottomEnd = 22.dp),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(44.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = if (isCurrentPlaylistPlaying && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, 
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
                                     }
                                 }
-                                
-                                Spacer(modifier = Modifier.width(12.dp))
-                                
-                                Surface(
-                                    onClick = { 
-                                        if (settingsManager.isHapticVibrationEnabled) {
-                                            vibrator.triggerLightVibration()
-                                        }
-                                        if (isCurrentPlaylistPlaying) {
-                                            if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                                        } else if (sortedSongs.isNotEmpty()) {
-                                            val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
-                                            onSongClick(songToPlay, sortedSongs)
-                                        }
-                                    },
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = if (isCurrentPlaylistPlaying && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, 
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onPrimary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                }
+
                             }
                         }
                         }
@@ -607,55 +610,57 @@ fun AlbumDetailView(
                                 
                                 Spacer(modifier = Modifier.width(8.dp))
 
-                                Surface(
-                                    onClick = { 
-                                        if (isCurrentAlbumPlaying) {
-                                            playbackManager.toggleShuffle()
-                                            localShuffleState = playbackManager.isShuffle
-                                        } else {
-                                            localShuffleState = !localShuffleState
-                                            settingsManager.setPlaylistShuffle(albumId, localShuffleState)
-                                        }
-                                    },
-                                    shape = CircleShape,
-                                    color = if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-                                    modifier = Modifier.size(36.dp)
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            Icons.Default.Shuffle,
-                                            contentDescription = null,
-                                            tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                    Surface(
+                                        onClick = { 
+                                            if (isCurrentAlbumPlaying) {
+                                                playbackManager.toggleShuffle()
+                                                localShuffleState = playbackManager.isShuffle
+                                            } else {
+                                                localShuffleState = !localShuffleState
+                                                settingsManager.setPlaylistShuffle(albumId, localShuffleState)
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                                        color = if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                        modifier = Modifier.size(44.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.Default.Shuffle,
+                                                contentDescription = null,
+                                                tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
                                     }
-                                }
-                                
-                                Spacer(modifier = Modifier.width(12.dp))
-                                
-                                Surface(
-                                    onClick = { 
-                                        if (settingsManager.isHapticVibrationEnabled) {
-                                            vibrator.triggerLightVibration()
+                                    Surface(
+                                        onClick = { 
+                                            if (settingsManager.isHapticVibrationEnabled) {
+                                                vibrator.triggerLightVibration()
+                                            }
+                                            if (isCurrentAlbumPlaying) {
+                                                if (isPlaying) playbackManager.pause() else playbackManager.resume()
+                                            } else if (sortedSongs.isNotEmpty()) {
+                                                val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
+                                                onSongClick(songToPlay, sortedSongs)
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 22.dp, bottomEnd = 22.dp),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(44.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = if (isCurrentAlbumPlaying && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, 
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(22.dp)
+                                            )
                                         }
-                                        if (isCurrentAlbumPlaying) {
-                                            if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                                        } else if (sortedSongs.isNotEmpty()) {
-                                            val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
-                                            onSongClick(songToPlay, sortedSongs)
-                                        }
-                                    },
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = if (isCurrentAlbumPlaying && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, 
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onPrimary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
                                     }
                                 }
                             }
@@ -951,6 +956,20 @@ fun FolderDetailView(
                                                 fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            val songsLabel = if (songs.size == 1) stringResource(R.string.song_singular) else stringResource(R.string.song_plural)
+                                            Text(
+                                                text = songsLabel,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = "${songs.size}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                         }
                                     }
 
@@ -974,53 +993,55 @@ fun FolderDetailView(
 
                                         Spacer(modifier = Modifier.width(8.dp))
 
-                                        Surface(
-                                            onClick = {
-                                                if (isCurrentFolderPlaying) {
-                                                    playbackManager.toggleShuffle()
-                                                    localShuffleState = playbackManager.isShuffle
-                                                } else {
-                                                    localShuffleState = !localShuffleState
-                                                    settingsManager.setPlaylistShuffle(folderId, localShuffleState)
-                                                }
-                                            },
-                                            shape = CircleShape,
-                                            color = if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-                                            modifier = Modifier.size(36.dp)
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Box(contentAlignment = Alignment.Center) {
-                                                Icon(
-                                                    Icons.Default.Shuffle,
-                                                    contentDescription = null,
-                                                    tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
+                                            Surface(
+                                                onClick = {
+                                                    if (isCurrentFolderPlaying) {
+                                                        playbackManager.toggleShuffle()
+                                                        localShuffleState = playbackManager.isShuffle
+                                                    } else {
+                                                        localShuffleState = !localShuffleState
+                                                        settingsManager.setPlaylistShuffle(folderId, localShuffleState)
+                                                    }
+                                                },
+                                                shape = RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                                                color = if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                                modifier = Modifier.size(44.dp)
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        Icons.Default.Shuffle,
+                                                        contentDescription = null,
+                                                        tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                }
                                             }
-                                        }
-
-                                        Spacer(modifier = Modifier.width(12.dp))
-
-                                        Surface(
-                                            onClick = {
-                                                if (settingsManager.isHapticVibrationEnabled) vibrator.triggerLightVibration()
-                                                if (isCurrentFolderPlaying) {
-                                                    if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                                                } else if (sortedSongs.isNotEmpty()) {
-                                                    val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
-                                                    onSongClick(songToPlay, sortedSongs)
+                                            Surface(
+                                                onClick = {
+                                                    if (settingsManager.isHapticVibrationEnabled) vibrator.triggerLightVibration()
+                                                    if (isCurrentFolderPlaying) {
+                                                        if (isPlaying) playbackManager.pause() else playbackManager.resume()
+                                                    } else if (sortedSongs.isNotEmpty()) {
+                                                        val songToPlay = if (isShuffleActive) sortedSongs.random() else sortedSongs[0]
+                                                        onSongClick(songToPlay, sortedSongs)
+                                                    }
+                                                },
+                                                shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 22.dp, bottomEnd = 22.dp),
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(44.dp)
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        imageVector = if (isCurrentFolderPlaying && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
                                                 }
-                                            },
-                                            shape = CircleShape,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(36.dp)
-                                        ) {
-                                            Box(contentAlignment = Alignment.Center) {
-                                                Icon(
-                                                    imageVector = if (isCurrentFolderPlaying && isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
                                             }
                                         }
                                     }

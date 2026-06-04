@@ -436,7 +436,7 @@ fun FullPlayer(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.12f))
+                        .background(Color.Black.copy(alpha = 0.28f))
                 )
             }
         }
@@ -683,48 +683,55 @@ fun FullPlayer(
                     }
                 }
 
-                val favBgColor = if (useBlurControls) {
-                    blurContainerColor
+                val pillBg = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                val isShuffling = playbackManager.isShuffle
+                val shuffleIconColor = if (isShuffling) {
+                    if (useBlurControls) Color.White else MaterialTheme.colorScheme.primary
                 } else {
-                    val surfaceColor = MaterialTheme.colorScheme.surface
-                    val luma = surfaceColor.red * 0.299f + surfaceColor.green * 0.587f + surfaceColor.blue * 0.114f
-                    val isDark = luma < 0.5f
-                    if (song.isFavorite) {
-                        if (isDark) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    }
-                }
-                val favIconColor = if (useBlurControls) {
-                    Color.White
-                } else {
-                    val surfaceColor = MaterialTheme.colorScheme.surface
-                    val luma = surfaceColor.red * 0.299f + surfaceColor.green * 0.587f + surfaceColor.blue * 0.114f
-                    val isDark = luma < 0.5f
-                    if (song.isFavorite) {
-                        if (isDark) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    }
+                    if (useBlurControls) Color.White.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 }
 
-                Surface(
-                    onClick = {
-                        playbackManager.toggleFavorite { updatedSong ->
-                            onSyncFavorite?.invoke(updatedSong.id, updatedSong.isFavorite)
-                        }
-                    },
-                    shape = CircleShape,
-                    color = favBgColor,
-                    modifier = Modifier.size(48.dp).bounceClick()
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (song.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = stringResource(R.string.option_favorite),
-                            tint = favIconColor,
-                            modifier = Modifier.size(24.dp)
-                        )
+                    Surface(
+                        onClick = { playbackManager.toggleShuffle() },
+                        shape = RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                        color = pillBg,
+                        modifier = Modifier.size(48.dp).bounceClick()
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Shuffle,
+                                contentDescription = stringResource(R.string.option_shuffle),
+                                tint = shuffleIconColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                    Surface(
+                        onClick = {
+                            playbackManager.toggleFavorite { updatedSong ->
+                                onSyncFavorite?.invoke(updatedSong.id, updatedSong.isFavorite)
+                            }
+                        },
+                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 24.dp, bottomEnd = 24.dp),
+                        color = pillBg,
+                        modifier = Modifier.size(48.dp).bounceClick()
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (song.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = stringResource(R.string.option_favorite),
+                                tint = if (song.isFavorite) {
+                                    if (useBlurControls) Color.White else MaterialTheme.colorScheme.primary
+                                } else {
+                                    if (useBlurControls) Color.White.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                },
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -1011,44 +1018,39 @@ fun FullPlayer(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(28.dp),
-                                color = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh,
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 6.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    PlayerActionButton(
-                                        icon = playbackManager.currentOutputIcon,
-                                        label = playbackManager.currentOutputName,
-                                        onClick = { showVolumeBar = true },
-                                        useBlurControls = useBlurControls
-                                    )
+                            val buttonBg = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh
 
-                                    PlayerActionButton(
-                                        icon = Icons.AutoMirrored.Filled.QueueMusic,
-                                        label = stringResource(R.string.player_queue),
-                                        onClick = { showQueueSheet = true },
-                                        useBlurControls = useBlurControls
-                                    )
+                            PlayerActionButton(
+                                icon = playbackManager.currentOutputIcon,
+                                label = playbackManager.currentOutputName,
+                                onClick = { showVolumeBar = true },
+                                useBlurControls = useBlurControls,
+                                containerColor = buttonBg
+                            )
 
-                                    PlayerActionButton(
-                                        icon = Icons.Default.Speed,
-                                        label = stringResource(R.string.option_speed),
-                                        onClick = { showSpeedBar = true },
-                                        useBlurControls = useBlurControls
-                                    )
+                            PlayerActionButton(
+                                icon = Icons.AutoMirrored.Filled.QueueMusic,
+                                label = stringResource(R.string.player_queue),
+                                onClick = { showQueueSheet = true },
+                                useBlurControls = useBlurControls,
+                                containerColor = buttonBg
+                            )
 
-                                    PlayerActionButton(
-                                        icon = Icons.Default.MoreHoriz,
-                                        label = stringResource(R.string.player_options),
-                                        onClick = { showOptionsSheet = true },
-                                        useBlurControls = useBlurControls
-                                    )
-                                }
-                            }
+                            PlayerActionButton(
+                                icon = Icons.Default.Speed,
+                                label = stringResource(R.string.option_speed),
+                                onClick = { showSpeedBar = true },
+                                useBlurControls = useBlurControls,
+                                containerColor = buttonBg
+                            )
+
+                            PlayerActionButton(
+                                icon = Icons.Default.MoreHoriz,
+                                label = stringResource(R.string.player_options),
+                                onClick = { showOptionsSheet = true },
+                                useBlurControls = useBlurControls,
+                                containerColor = buttonBg
+                            )
 
                             val hasLyrics = playbackManager.currentLyrics != null
                             val lyricsTint by animateColorAsState(
@@ -1061,7 +1063,7 @@ fun FullPlayer(
                             )
                             Surface(
                                 shape = CircleShape,
-                                color = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                color = buttonBg,
                                 modifier = Modifier.size(36.dp).bounceClick()
                             ) {
                                 IconButton(
@@ -1253,12 +1255,13 @@ fun PlayerActionButton(
     label: String,
     onClick: () -> Unit,
     useBlurControls: Boolean = false,
+    containerColor: Color = Color.Transparent,
     modifier: Modifier = Modifier
 ) {
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = Color.Transparent,
+        color = containerColor,
         modifier = modifier.size(36.dp).bounceClick()
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -1344,7 +1347,7 @@ fun MiniPlayer(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.15f))
+                            .background(Color.Black.copy(alpha = 0.28f))
                     )
                 }
             }
@@ -1430,69 +1433,69 @@ fun MiniPlayer(
                 }
 
                 val activePrimary = getControlsPrimaryColor(useCustomControlsColor, controlsColorPalette)
-                val activeContainerColor = if (useCustomControlsColor) {
+                val pillMiniColor = if (useCustomControlsColor) {
                     activePrimary.copy(alpha = 0.25f)
                 } else if (hasBlurBackground) {
                     blurContainerColorMini
                 } else {
-                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                    MaterialTheme.colorScheme.surfaceContainerHigh
                 }
-                val activeIconTint = if (useCustomControlsColor) {
+                val pillMiniIconTint = if (useCustomControlsColor) {
                     activePrimary
                 } else if (hasBlurBackground) {
                     Color.White
                 } else {
-                    MaterialTheme.colorScheme.onPrimaryContainer
+                    MaterialTheme.colorScheme.onSecondaryContainer
                 }
 
-                IconButton(onClick = onPrevious) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Surface(
-                        shape = CircleShape,
-                        color = activeContainerColor,
-                        modifier = Modifier.size(36.dp)
+                        onClick = onPrevious,
+                        shape = RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                        color = pillMiniColor,
+                        modifier = Modifier.size(44.dp).bounceClick()
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             ReusableSkipIcon(
                                 isNext = false,
                                 controlsIconStyle = controlsIconStyle,
                                 isControlsFilled = isControlsFilled,
-                                tint = activeIconTint,
-                                modifier = Modifier.size(20.dp)
+                                tint = pillMiniIconTint,
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }
-                }
-
-                IconButton(onClick = onTogglePlay) {
                     Surface(
-                        shape = CircleShape,
-                        color = if (hasBlurBackground) blurPlayContainerColorMini else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(36.dp)
+                        onClick = onTogglePlay,
+                        shape = RoundedCornerShape(4.dp),
+                        color = pillMiniColor,
+                        modifier = Modifier.size(44.dp).bounceClick()
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                                 contentDescription = null,
-                                tint = if (hasBlurBackground) Color.White else MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(20.dp)
+                                tint = pillMiniIconTint,
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }
-                }
-
-                IconButton(onClick = onNext) {
                     Surface(
-                        shape = CircleShape,
-                        color = activeContainerColor,
-                        modifier = Modifier.size(36.dp)
+                        onClick = onNext,
+                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 22.dp, bottomEnd = 22.dp),
+                        color = pillMiniColor,
+                        modifier = Modifier.size(44.dp).bounceClick()
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             ReusableSkipIcon(
                                 isNext = true,
                                 controlsIconStyle = controlsIconStyle,
                                 isControlsFilled = isControlsFilled,
-                                tint = activeIconTint,
-                                modifier = Modifier.size(20.dp)
+                                tint = pillMiniIconTint,
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }
