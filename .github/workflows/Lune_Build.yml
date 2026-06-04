@@ -1,4 +1,4 @@
-name: Build Lune Debug
+name: Build Lune Release
 
 on:
   workflow_dispatch:
@@ -17,6 +17,19 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+
+      - name: Create keystore.properties
+        run: |
+          cat <<EOF > keystore.properties
+          storeFile=keystore.jks
+          storePassword=${{ secrets.STORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD}}
+          EOF
+
       - name: Read versionName
         id: version
         run: |
@@ -27,12 +40,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        # assembleDebug does not require a keystore — Android signs with a test key
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Create Github Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Lune-debug-${{ steps.version.outputs.version }}
-          # Correct path for debug builds
-          path: app/build/outputs/apk/debug/*.apk
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Lune ${{ steps.version.outputs.version }}
+          files: app/build/outputs/apk/release/*apk
