@@ -34,10 +34,7 @@
     <!-- Metadata Editor -->
     <string name="edit_title">Titre</string>
     <string name="edit_artist">Artiste</string>
-    <string name="edit_album">Album</string>
-    <string name="edit_genre">Genre</string>
     <string name="save_changes">Enregistrer les modifications</string>
-    <string name="restore">Restaurer</string>
 
     <!-- Library Tabs -->
     <string name="tab_resume">Résumé</string>
@@ -59,15 +56,9 @@
     <string name="transition_mixing">Mixage</string>
     <string name="transition_crossfade">Fondu enchaîné</string>
     <string name="unknown_artist">Artiste inconnu</string>
-    <string name="unknown_album">Album inconnu</string>
     <string name="unknown_song">Chanson inconnue</string>
-    <string name="most_played_desc">La plus écoutée</string>
 
     <!-- Accessibility / Icons -->
-    <string name="cd_menu">Menu</string>
-    <string name="cd_edit">Modifier</string>
-    <string name="cd_previous">Précédent</string>
-    <string name="cd_next">Suivant</string>
     <string name="cd_back">Retour</string>
     <string name="cd_restore">Restaurer</string>
 
@@ -82,14 +73,13 @@
     <string name="lang_spanish">Espagnol</string>
     <string name="lang_portuguese">Portugais</string>
     <string name="lang_french">Français</string>
+    <string name="lang_chinese">Chinois</string>
 
     <string name="ok">OK</string>
-    <string name="cd_edit_folders">Modifier les dossiers</string>
     <string name="cd_activate_eq">Activer l’EQ</string>
     <string name="cd_play_pause">Lecture/Pause</string>
     <string name="cd_change_cover">Changer la pochette</string>
     <string name="playlists">Playlists</string>
-    <string name="playlist">Playlist</string>
     <string name="add_to_playlist">Ajouter à la playlist</string>
     <string name="create_playlist">Créer une playlist</string>
     <string name="playlist_name">Nom de la playlist</string>
@@ -97,7 +87,6 @@
     <string name="cancel">Annuler</string>
     <string name="create">Créer</string>
     <string name="save">Enregistrer</string>
-    <string name="no_playlists">Aucune playlist créée pour le moment</string>
     <string name="no_songs_in_playlist">Aucune chanson dans cette playlist</string>
     <string name="theme_auto">Automatique (Système)</string>
     <string name="theme_light">Mode Clair</string>
@@ -109,16 +98,13 @@
     <string name="delete_song_warning">Êtes-vous sûr ? Cette chanson sera supprimée définitivement de votre appareil.</string>
     <string name="restore_music">Restaurer</string>
     <string name="song_deleted">Chanson supprimée</string>
-    <string name="play_playlist">Lire la playlist</string>
     <string name="edit_name">Modifier le nom</string>
     <string name="search">Rechercher</string>
     <string name="search_hint">Rechercher des chansons, artistes ou playlists...</string>
-    <string name="cd_add_to_playlist">Ajouter à la playlist</string>
     <string name="delete_playlist">Supprimer la playlist</string>
     <string name="delete_playlist_confirm">Êtes-vous sûr de vouloir supprimer cette playlist ?</string>
     <string name="delete">Supprimer</string>
     <string name="custom_title">Titre personnalisé</string>
-    <string name="custom_title_desc">Modifier le titre de la barre principale</string>
     <string name="customization">Personnalisation</string>
     <string name="customization_desc">Personnaliser le style, le titre et les couleurs de l’application</string>
     <string name="use_custom_colors">Utiliser des couleurs personnalisées</string>
@@ -171,20 +157,12 @@
     <string name="output_bluetooth">Bluetooth</string>
     <string name="queue_now_playing">Lecture en cours</string>
     <string name="queue_up_next">À suivre</string>
-    <string name="move_song">Déplacer</string>
-    <string name="move_song_title">Déplacer la chanson dans la file</string>
-    <string name="move_to_front">Lire ensuite</string>
-    <string name="move_to_front_desc">Lire juste après la chanson en cours</string>
-    <string name="move_to_end">Déplacer à la fin</string>
-    <string name="move_to_end_desc">Déplacer à la fin de la file</string>
     <string name="option_visualizer">Visualiseur</string>
     <string name="visualizer_full_player">Afficher dans le grand lecteur</string>
     <string name="visualizer_mini_player">Afficher dans le mini lecteur</string>
     <string name="credits">Crédits</string>
     <string name="credits_desc">Tests, suggestions de design et logo</string>
     <string name="creator_desc">Créateur et mainteneur du lecteur Lune Music</string>
-    <string name="github">GitHub</string>
-    <string name="donation">Don</string>
     <string name="gesture">Gestes</string>
     <string name="gesture_desc">Configuration des gestes</string>
     <string name="enable_gestures">Activer les gestes</string>
@@ -228,8 +206,6 @@
 
     <string name="perm_bluetooth_title">Bluetooth</string>
     <string name="perm_bluetooth_desc">Requis pour détecter et gérer les connexions avec des appareils audio Bluetooth.</string>
-    <string name="perm_audio_service_title">Service de lecture</string>
-    <string name="perm_audio_service_desc">Permet à l’application de continuer à lire de la musique en arrière-plan ou lorsque l’écran est éteint.</string>
     <string name="perm_record_audio_title">Enregistrer l’audio</string>
     <string name="perm_record_audio_desc">Nécessaire pour que le visualiseur audio traite et affiche les données de fréquence en temps réel.</string>
 
@@ -251,7 +227,6 @@
     <string name="export_error">Erreur lors de l’exportation des playlists</string>
     <string name="import_success">Playlists importées avec succès</string>
     <string name="import_error">Erreur lors de l’importation des playlists</string>
-    <string name="no_file_selected">Aucun fichier sélectionné</string>
     <string name="song_singular">chanson</string>
     <string name="song_plural">chansons</string>
     <string name="no_music_available">Aucune musique disponible</string>
@@ -264,18 +239,10 @@
     <string name="welcome_evening">Bonsoir</string>
     <string name="welcome_night">Bonne nuit</string>
     <string name="welcome_early_morning">Bonne fin de nuit</string>
-    <string name="stats_listening_today">Temps d’écoute aujourd’hui</string>
     <string name="stats_hours_unit">%dh</string>
     <string name="stats_minutes_unit">%dmin</string>
     <string name="stats_seconds_unit">%ds</string>
-    <string name="total_songs">Nombre total de chansons</string>
-    <string name="stats_top_playlist">Ta playlist du moment</string>
-    <string name="stats_top_songs">Chansons du moment</string>
-    <string name="stats_artist_moment">Artiste du moment</string>
-    <string name="stats_playlist_message">Cette playlist tourne en boucle ! </string>
-    <string name="stats_songs_message">Tes morceaux les plus écoutés ! </string>
     <string name="stats_music_unit">de musique</string>
-    <string name="stats_loading_hits">Chargement de tes hits…</string>
 
     <!-- Info Cards -->
     <string name="info_card_time">Félicitations ! Aujourd\'hui tu as écouté %s de musique</string>
@@ -318,7 +285,6 @@
     <string name="onboarding_support_title">Soutenez le Projet</string>
     <string name="onboarding_support_desc">Si vous aimez Lune, pensez à nous soutenir via la section Faire un don dans Paramètres > À propos. Chaque contribution aide l\'application à continuer de grandir !</string>
     <string name="search_play_all">Tout Lire</string>
-    <string name="search_shuffle_all">Aléatoire Tout</string>
     <string name="search_shuffle">Aléatoire</string>
     <string name="playing_from">Lecture depuis: %s</string>
     <string name="playing_from_search">Résultat de recherche</string>
