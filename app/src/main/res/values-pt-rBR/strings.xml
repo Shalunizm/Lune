@@ -18,7 +18,7 @@
     <!-- UI/Player Strings -->
     <string name="eq_title">Equalizador</string>
     <string name="eq_empty_hint">Toque uma música para configurar o Equalizador</string>
-    <string name="bass_label">GRAVES</string>
+    <string name="bass_label">GRAVES EXTRA</string>
     <string name="spatial_audio_label">Áudio Espacial</string>
     <string name="restore_defaults">Restaurar padrões</string>
     <string name="disabled">Desativado</string>

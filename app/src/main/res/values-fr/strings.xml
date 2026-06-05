@@ -18,7 +18,7 @@
     <!-- UI/Player Strings -->
     <string name="eq_title">Égaliseur</string>
     <string name="eq_empty_hint">Lancez une chanson pour configurer l’égaliseur</string>
-    <string name="bass_label">BASSES</string>
+    <string name="bass_label">EXTRA BASSES</string>
     <string name="spatial_audio_label">Audio Spatial</string>
     <string name="restore_defaults">Restaurer par défaut</string>
     <string name="disabled">Désactivé</string>

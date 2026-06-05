@@ -18,7 +18,7 @@
     <!-- UI/Player Strings -->
     <string name="eq_title">均衡器</string>
     <string name="eq_empty_hint">播放一首歌来配置均衡器</string>
-    <string name="bass_label">低音</string>
+    <string name="bass_label">增强低音</string>
     <string name="spatial_audio_label">空间音频</string>
     <string name="restore_defaults">恢复默认</string>
     <string name="disabled">已禁用</string>

@@ -2,4 +2,6 @@
 - Play result list search
 - Fix bug in crossfade
 - Add new option in OnBoarding for folder filters
+- Add Chinese languaje
+- Improvement to the "BASS" option of the equalizer
 - Minor changes and fixes

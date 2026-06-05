@@ -355,10 +355,15 @@ fun EqualizerScreen(onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.bass_label), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.bass_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Switch(
                     checked = playbackManager.isBassBoostEnabled,
                     onCheckedChange = { playbackManager.toggleBassBoost() },
+                    enabled = isEnabled,
                     thumbContent = {
                         Icon(
                             imageVector = if (playbackManager.isBassBoostEnabled) Icons.Default.Check else Icons.Default.Close,

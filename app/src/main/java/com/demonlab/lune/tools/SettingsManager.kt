@@ -119,6 +119,10 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("is_bass_enabled", false)
         set(value) = prefs.edit().putBoolean("is_bass_enabled", value).apply()
 
+    var bassBoostLevel: Int
+        get() = prefs.getInt("bass_boost_level", 900)
+        set(value) = prefs.edit().putInt("bass_boost_level", value).apply()
+
     var isSpatialAudioEnabled: Boolean
         get() = prefs.getBoolean("is_spatial_audio_enabled", false)
         set(value) {

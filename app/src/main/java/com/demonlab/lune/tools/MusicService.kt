@@ -221,10 +221,7 @@ class MusicService : MediaBrowserServiceCompat() {
             }
 
             val bb = BassBoost(0, sessionId).apply {
-                enabled = settingsManager.isBassBoostEnabled
-                if (strengthSupported) {
-                    setStrength(900.toShort())
-                }
+                enabled = false
             }
 
             val virt = Virtualizer(0, sessionId).apply {
@@ -971,6 +968,15 @@ class MusicService : MediaBrowserServiceCompat() {
 
     fun setBassBoostEnabled(enabled: Boolean) {
         bassBoost?.enabled = enabled
+        if (enabled && bassBoost?.strengthSupported == true) {
+            bassBoost?.setStrength(settingsManager.bassBoostLevel.toShort())
+        }
+    }
+
+    fun setBassBoostStrength(strength: Short) {
+        if (bassBoost?.strengthSupported == true) {
+            bassBoost?.setStrength(strength)
+        }
     }
 
     fun setSpatialAudioEnabled(enabled: Boolean) {

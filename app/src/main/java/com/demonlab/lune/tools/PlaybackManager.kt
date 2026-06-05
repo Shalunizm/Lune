@@ -68,6 +68,7 @@ class PlaybackManager private constructor(private val context: Context) {
         private set
 
     private var frontQueueInsertCount = 0
+    private var bassBoostOffset: Short = 0
 
     fun resetQueueCounts() {
         frontQueueInsertCount = 0
@@ -777,7 +778,12 @@ class PlaybackManager private constructor(private val context: Context) {
     }
 
     fun setEqBandLevel(band: Short, level: Short) {
-        musicService?.setEqBandLevel(band, level)
+        val adjusted = if (band <= 1 && bassBoostOffset != 0.toShort()) {
+            (level + bassBoostOffset).coerceIn(-1500, 1500).toShort()
+        } else {
+            level
+        }
+        musicService?.setEqBandLevel(band, adjusted)
         val numBands = getEqNumberOfBands().toInt()
         val currentBands = eqBandLevels.toMutableList()
         if (currentBands.size != numBands) {
@@ -794,12 +800,23 @@ class PlaybackManager private constructor(private val context: Context) {
     }
 
     fun resetEq() {
-        val numBands = getEqNumberOfBands()
-        for (i in 0 until numBands) {
-            setEqBandLevel(i.toShort(), 0)
+        if (activeEqPresetName.isEmpty()) {
+            val numBands = getEqNumberOfBands()
+            for (i in 0 until numBands) {
+                setEqBandLevel(i.toShort(), 0)
+            }
+        } else if (isCustomPreset(activeEqPresetName)) {
+            val saved = getSavedCustomPresets().find { it.first == activeEqPresetName }
+            if (saved != null) {
+                applyCustomPreset(saved.first, saved.second)
+            }
+        } else {
+            val presets = getEqPresets()
+            val index = presets.indexOf(activeEqPresetName)
+            if (index >= 0) {
+                applyEqPreset(index.toShort())
+            }
         }
-        activeEqPresetName = ""
-        settings.activeEqPresetName = ""
     }
 
     fun getEqPresets(): List<String> {
@@ -826,6 +843,14 @@ class PlaybackManager private constructor(private val context: Context) {
             val name = musicService?.equalizer?.getPresetName(presetIndex) ?: ""
             activeEqPresetName = name
             settings.activeEqPresetName = name
+            if (isBassBoostEnabled) {
+                for (i in 0..1) {
+                    if (i < eqBandLevels.size) {
+                        val adjusted = (eqBandLevels[i] + bassBoostOffset).coerceIn(-1500, 1500).toShort()
+                        musicService?.setEqBandLevel(i.toShort(), adjusted)
+                    }
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -906,13 +931,39 @@ class PlaybackManager private constructor(private val context: Context) {
             settings.eqBandLevels = eqBandLevels.joinToString(",")
             activeEqPresetName = name
             settings.activeEqPresetName = name
+            if (isBassBoostEnabled) {
+                for (i in 0..1) {
+                    if (i < eqBandLevels.size) {
+                        val adjusted = (eqBandLevels[i] + bassBoostOffset).coerceIn(-1500, 1500).toShort()
+                        musicService?.setEqBandLevel(i.toShort(), adjusted)
+                    }
+                }
+            }
         }
     }
 
     fun toggleBassBoost() {
         isBassBoostEnabled = !isBassBoostEnabled
         settings.isBassBoostEnabled = isBassBoostEnabled
-        musicService?.setBassBoostEnabled(isBassBoostEnabled)
+        if (isBassBoostEnabled) {
+            bassBoostOffset = 500.toShort()
+            for (i in 0..1) {
+                if (i < eqBandLevels.size) {
+                    val adjusted = (eqBandLevels[i] + bassBoostOffset).coerceIn(-1500, 1500).toShort()
+                    musicService?.setEqBandLevel(i.toShort(), adjusted)
+                }
+            }
+            musicService?.setBassBoostEnabled(true)
+            musicService?.setBassBoostStrength(200)
+        } else {
+            bassBoostOffset = 0
+            for (i in 0..1) {
+                if (i < eqBandLevels.size) {
+                    musicService?.setEqBandLevel(i.toShort(), eqBandLevels[i])
+                }
+            }
+            musicService?.setBassBoostEnabled(false)
+        }
     }
 
     fun toggleSpatialAudio() {

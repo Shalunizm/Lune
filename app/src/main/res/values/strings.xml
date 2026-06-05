@@ -18,7 +18,7 @@
     <!-- UI/Player Strings -->
     <string name="eq_title">Equalizer</string>
     <string name="eq_empty_hint">Play a song to configure the Equalizer</string>
-    <string name="bass_label">BASS</string>
+    <string name="bass_label">EXTRA BASS</string>
     <string name="spatial_audio_label">Spatial Audio</string>
     <string name="restore_defaults">Restore defaults</string>
     <string name="disabled">Disabled</string>
