@@ -295,7 +295,6 @@
     <string name="donate_title">支持项目</string>
     <string name="paypal">PayPal</string>
     <string name="monero">Monero</string>
-    <string name="patreon">Patreon</string>
     <string name="monero_address">88s5Re4p6a3P9TtqaG1G2Yeq5Ppp1w1npXebyLjktuxYgurFAGn4GRbKuPKGbx1pD1bBwohtAriL7JqB12ECp4SnMN1T3q9</string>
     <string name="copied">已复制到剪贴板</string>
 </resources>

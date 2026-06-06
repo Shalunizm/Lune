@@ -411,20 +411,6 @@ fun DonateDialog(onDismiss: () -> Unit) {
                 }
 
                 Button(
-                    onClick = { uriHandler.openUri("https://patreon.com/mrdemonc?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Favorite,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.patreon))
-                }
-
-                Button(
                     onClick = { showMonero = !showMonero },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),

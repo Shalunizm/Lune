@@ -298,7 +298,6 @@
     <string name="donate_title">Support the Project</string>
     <string name="paypal">PayPal</string>
     <string name="monero">Monero</string>
-    <string name="patreon">Patreon</string>
     <string name="monero_address">88s5Re4p6a3P9TtqaG1G2Yeq5Ppp1w1npXebyLjktuxYgurFAGn4GRbKuPKGbx1pD1bBwohtAriL7JqB12ECp4SnMN1T3q9</string>
     <string name="copied">Copied to clipboard</string>
 </resources>
