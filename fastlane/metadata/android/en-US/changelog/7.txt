@@ -2,7 +2,7 @@
 - Play result list search
 - Fix bug in crossfade
 - Add new option in OnBoarding for folder filters
-- Add Chinese languaje
+- Add Chinese and German languaje
 - Improvement to the "BASS" and "Spacial Audio" options of the equalizer
 - New options in equalizer: Loudness, Balance, Reverd, Pitch and Dynamic Processor
 - Minor changes and fixes
