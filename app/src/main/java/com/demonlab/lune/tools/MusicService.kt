@@ -22,6 +22,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.demonlab.lune.R
 import com.demonlab.lune.audio.LoudnessEffect
+import com.demonlab.lune.audio.ReverbEffect
 import com.demonlab.lune.ui.activities.Lune
 import kotlinx.coroutines.*
 import android.media.audiofx.Equalizer
@@ -53,6 +54,7 @@ class MusicService : MediaBrowserServiceCompat() {
     internal var virtualizer: Virtualizer? = null
 
     internal var loudnessEffect: LoudnessEffect? = null
+    internal var reverbEffect: ReverbEffect? = null
 
     private var secondaryEqualizer: Equalizer? = null
     private var secondaryBassBoost: BassBoost? = null
@@ -208,11 +210,13 @@ class MusicService : MediaBrowserServiceCompat() {
                 secondaryBassBoost?.release()
                 secondaryVirtualizer?.release()
                 loudnessEffect?.release(true)
+                reverbEffect?.release(true)
             } else {
                 equalizer?.release()
                 bassBoost?.release()
                 virtualizer?.release()
                 loudnessEffect?.release(false)
+                reverbEffect?.release(false)
             }
 
             val eq = Equalizer(0, sessionId).apply {
@@ -242,6 +246,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
             if (isSecondary) {
                 loudnessEffect?.setup(sessionId, true, settingsManager.isLoudnessEnabled, settingsManager.loudnessGain)
+                reverbEffect?.setup(sessionId, true, settingsManager.reverbPreset)
                 secondaryEqualizer = eq
                 secondaryBassBoost = bb
                 secondaryVirtualizer = virt
@@ -250,6 +255,10 @@ class MusicService : MediaBrowserServiceCompat() {
                     setup(sessionId, false, settingsManager.isLoudnessEnabled, settingsManager.loudnessGain)
                 }
                 loudnessEffect = loud
+                val rev = ReverbEffect().apply {
+                    setup(sessionId, false, settingsManager.reverbPreset)
+                }
+                reverbEffect = rev
                 equalizer = eq
                 bassBoost = bb
                 virtualizer = virt
@@ -589,11 +598,13 @@ class MusicService : MediaBrowserServiceCompat() {
                 bassBoost?.release()
                 virtualizer?.release()
                 loudnessEffect?.release(false)
+                reverbEffect?.release(false)
 
                 equalizer = secondaryEqualizer
                 bassBoost = secondaryBassBoost
                 virtualizer = secondaryVirtualizer
                 loudnessEffect?.handover()
+                reverbEffect?.handover()
 
                 secondaryEqualizer = null
                 secondaryBassBoost = null
@@ -972,6 +983,7 @@ class MusicService : MediaBrowserServiceCompat() {
         bassBoost?.release()
         virtualizer?.release()
         loudnessEffect?.releaseAll()
+        reverbEffect?.releaseAll()
         secondaryEqualizer?.release()
         secondaryBassBoost?.release()
         secondaryVirtualizer?.release()
@@ -1004,6 +1016,10 @@ class MusicService : MediaBrowserServiceCompat() {
         if (bassBoost?.strengthSupported == true) {
             bassBoost?.setStrength(strength)
         }
+    }
+
+    fun setReverbPreset(preset: Int) {
+        reverbEffect?.setPreset(preset)
     }
 
     fun setLoudnessEnabled(enabled: Boolean) {

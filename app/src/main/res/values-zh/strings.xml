@@ -21,6 +21,7 @@
     <string name="bass_label">增强低音</string>
     <string name="spatial_audio_label">空间音频</string>
     <string name="loudness_label">响度</string>
+    <string name="reverb_label">混响</string>
     <string name="pitch_label">音调</string>
     <string name="pitch_reset">重置音调</string>
     <string name="restore_defaults">恢复默认</string>

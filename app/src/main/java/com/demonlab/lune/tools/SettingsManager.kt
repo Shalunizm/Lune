@@ -286,6 +286,10 @@ class SettingsManager(context: Context) {
         get() = prefs.getFloat("playback_pitch", 1.0f)
         set(value) = prefs.edit().putFloat("playback_pitch", value).apply()
 
+    var reverbPreset: Int
+        get() = prefs.getInt("reverb_preset", 0)
+        set(value) = prefs.edit().putInt("reverb_preset", value).apply()
+
     var isLoudnessEnabled: Boolean
         get() = prefs.getBoolean("is_loudness_enabled", false)
         set(value) = prefs.edit().putBoolean("is_loudness_enabled", value).apply()

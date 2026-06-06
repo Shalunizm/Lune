@@ -447,6 +447,37 @@ fun EqualizerScreen(onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val reverbNames = listOf("None", "Small Room", "Medium Room", "Large Room", "Medium Hall", "Large Hall", "Plate")
+            val reverbValues = listOf(0, 1, 2, 3, 4, 5, 6)
+            var currentReverb by remember { mutableStateOf(playbackManager.reverbPreset) }
+
+            LaunchedEffect(playbackManager.reverbPreset) {
+                currentReverb = playbackManager.reverbPreset
+            }
+
+            Text(
+                stringResource(R.string.reverb_label),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(reverbNames.size) { index ->
+                    val isActive = currentReverb == reverbValues[index]
+                    FilterChip(
+                        selected = isActive,
+                        onClick = {
+                            currentReverb = reverbValues[index]
+                            playbackManager.updateReverbPreset(reverbValues[index])
+                        },
+                        label = { Text(reverbNames[index]) },
+                        border = null
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             var pitchValue by remember { mutableStateOf(playbackManager.playbackPitch) }
 
             LaunchedEffect(playbackManager.playbackPitch) {
