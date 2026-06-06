@@ -81,6 +81,7 @@
     <string name="lang_portuguese">Portuguese</string>
     <string name="lang_french">French</string>
     <string name="lang_chinese">Chinese</string>
+    <string name="lang_german">German</string>
 
     <string name="ok">OK</string>
     <string name="cd_activate_eq">Activate EQ</string>
