@@ -60,6 +60,8 @@ class MusicService : MediaBrowserServiceCompat() {
     private var audioFocusRequest: AudioFocusRequest? = null
     private var wasPlayingBeforeLoss = false
     private var widgetUpdateJob: Job? = null
+    private var spatialRampJob: Job? = null
+    private var currentSpatialStrength: Short = 0
     private var lastSongForBlur: Song? = null
     private var lastBlurredBitmap: Bitmap? = null
     private var lastSongForRounded: Song? = null
@@ -227,7 +229,9 @@ class MusicService : MediaBrowserServiceCompat() {
             val virt = Virtualizer(0, sessionId).apply {
                 enabled = settingsManager.isSpatialAudioEnabled
                 if (strengthSupported) {
-                    setStrength(1000.toShort())
+                    val s = 800.toShort()
+                    setStrength(s)
+                    currentSpatialStrength = s
                 }
             }
 
@@ -953,6 +957,7 @@ class MusicService : MediaBrowserServiceCompat() {
         mediaPlayer?.release()
         secondaryPlayer?.release()
         mediaSession?.release()
+        spatialRampJob?.cancel()
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -981,7 +986,39 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     fun setSpatialAudioEnabled(enabled: Boolean) {
-        virtualizer?.enabled = enabled
+        spatialRampJob?.cancel()
+        spatialRampJob = serviceScope.launch {
+            val target = if (enabled) 800.toShort() else 0.toShort()
+            val start = currentSpatialStrength
+            val steps = 15
+
+            if (enabled) {
+                virtualizer?.enabled = true
+                secondaryVirtualizer?.enabled = true
+            }
+
+            for (i in 0..steps) {
+                val progress = i.toFloat() / steps
+                val eased = if (enabled) 1f - (1f - progress) * (1f - progress)
+                            else progress * progress
+                val value = (start + (target - start) * eased)
+                    .toInt().coerceIn(0, 1000).toShort()
+                if (virtualizer?.strengthSupported == true) {
+                    virtualizer?.setStrength(value)
+                }
+                if (secondaryVirtualizer?.strengthSupported == true) {
+                    secondaryVirtualizer?.setStrength(value)
+                }
+                delay(10)
+            }
+
+            currentSpatialStrength = target
+
+            if (!enabled) {
+                virtualizer?.enabled = false
+                secondaryVirtualizer?.enabled = false
+            }
+        }
     }
 
     private fun startWidgetUpdateTimer() {
