@@ -411,7 +411,7 @@ fun DonateDialog(onDismiss: () -> Unit) {
                 }
 
                 Button(
-                    onClick = { uriHandler.openUri("https://www.patreon.com/mrdemonc") },
+                    onClick = { uriHandler.openUri("https://patreon.com/mrdemonc?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {

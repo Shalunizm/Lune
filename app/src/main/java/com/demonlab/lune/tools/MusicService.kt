@@ -649,6 +649,7 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     fun resume() {
+        requestAudioFocus()
         mediaPlayer?.start()
         secondaryPlayer?.start()
         PlaybackManager.getInstance(applicationContext).updatePlayingState(true)
