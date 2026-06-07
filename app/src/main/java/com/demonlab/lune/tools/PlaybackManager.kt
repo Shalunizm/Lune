@@ -78,6 +78,8 @@ class PlaybackManager private constructor(private val context: Context) {
         private set
     var playbackPitch by mutableStateOf(settings.playbackPitch)
         private set
+    var isTuning432 by mutableStateOf(settings.isTuning432)
+        private set
     var reverbPreset by mutableStateOf(settings.reverbPreset)
         private set
     var balance by mutableStateOf(settings.balance)
@@ -1059,6 +1061,13 @@ class PlaybackManager private constructor(private val context: Context) {
         playbackPitch = pitch
         settings.playbackPitch = pitch
         musicService?.setPlaybackParams(playbackSpeed, pitch)
+    }
+
+    fun toggleTuning432() {
+        isTuning432 = !isTuning432
+        settings.isTuning432 = isTuning432
+        val target = if (isTuning432) 432f / 440f else 1.0f
+        updatePitch(target)
     }
 
     fun getProgress(): Float {

@@ -286,6 +286,10 @@ class SettingsManager(context: Context) {
         get() = prefs.getFloat("playback_pitch", 1.0f)
         set(value) = prefs.edit().putFloat("playback_pitch", value).apply()
 
+    var isTuning432: Boolean
+        get() = prefs.getBoolean("tuning_432", false)
+        set(value) = prefs.edit().putBoolean("tuning_432", value).apply()
+
     var reverbPreset: Int
         get() = prefs.getInt("reverb_preset", 0)
         set(value) = prefs.edit().putInt("reverb_preset", value).apply()

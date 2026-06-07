@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -586,6 +587,21 @@ fun EqualizerScreen(onBack: () -> Unit) {
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.width(52.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    SuggestionChip(
+                        onClick = {
+                            playbackManager.toggleTuning432()
+                        },
+                        label = { Text("432Hz") },
+                        shape = RoundedCornerShape(16.dp),
+                        border = if (playbackManager.isTuning432) null else
+                            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = if (playbackManager.isTuning432)
+                            SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                labelColor = MaterialTheme.colorScheme.onPrimary
+                            ) else SuggestionChipDefaults.suggestionChipColors()
                     )
                     if (pitchValue != 1.0f) {
                         Spacer(modifier = Modifier.width(8.dp))
