@@ -126,6 +126,8 @@
     <string name="song_info_desc">Muestra el formato y la tasa de bits en el reproductor y la lista</string>
     <string name="show_in_song_list">Mostrar en lista</string>
     <string name="show_in_full_player">Mostrar en reproductor</string>
+    <string name="show_options">Mostrar opciones</string>
+    <string name="hide_options">Ocultar opciones</string>
     <string name="cover_player">Cover player</string>
     <string name="cover_player_desc">Personaliza la forma, tamaño y rotación de la carátula</string>
     <string name="shape_default">Por defecto</string>

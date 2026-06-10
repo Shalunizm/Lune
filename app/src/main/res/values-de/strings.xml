@@ -126,6 +126,8 @@
     <string name="song_info_desc">Audioformat und Bitrate im Player und in der Liste anzeigen</string>
     <string name="show_in_song_list">In der Liste anzeigen</string>
     <string name="show_in_full_player">Im Player anzeigen</string>
+    <string name="show_options">Optionen anzeigen</string>
+    <string name="hide_options">Optionen ausblenden</string>
     <string name="cover_player">Cover-Player</string>
     <string name="cover_player_desc">Cover-Form, -Größe und -Drehung anpassen</string>
     <string name="shape_default">Standard</string>

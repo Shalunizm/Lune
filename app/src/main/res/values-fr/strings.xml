@@ -126,6 +126,8 @@
     <string name="song_info_desc">Afficher le format et le débit binaire dans le lecteur et la liste</string>
     <string name="show_in_song_list">Afficher dans la liste</string>
     <string name="show_in_full_player">Afficher dans le lecteur</string>
+    <string name="show_options">Afficher les options</string>
+    <string name="hide_options">Masquer les options</string>
     <string name="cover_player">Pochette du lecteur</string>
     <string name="cover_player_desc">Personnaliser la forme, la taille et la rotation de la pochette</string>
     <string name="shape_default">Par défaut</string>

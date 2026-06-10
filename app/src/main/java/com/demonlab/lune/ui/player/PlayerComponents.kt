@@ -303,6 +303,7 @@ fun FullPlayer(
     var showAddToPlaylistInPlayer by remember { mutableStateOf(false) }
     var showVolumeBar by remember { mutableStateOf(false) }
     var showSpeedBar by remember { mutableStateOf(false) }
+    var showOptionsBar by remember { mutableStateOf(true) }
     var showVisualizerSettings by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
@@ -1002,80 +1003,98 @@ fun FullPlayer(
                         }
                     }
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
-                            .graphicsLayer {
-                                scaleX = pillAnim.value
-                                scaleY = pillAnim.value
-                            },
-                        contentAlignment = Alignment.Center
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val buttonBg = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh
-
-                            PlayerActionButton(
-                                icon = playbackManager.currentOutputIcon,
-                                label = playbackManager.currentOutputName,
-                                onClick = { showVolumeBar = true },
-                                useBlurControls = useBlurControls,
-                                containerColor = buttonBg
-                            )
-
-                            PlayerActionButton(
-                                icon = Icons.AutoMirrored.Filled.QueueMusic,
-                                label = stringResource(R.string.player_queue),
-                                onClick = { showQueueSheet = true },
-                                useBlurControls = useBlurControls,
-                                containerColor = buttonBg
-                            )
-
-                            PlayerActionButton(
-                                icon = Icons.Default.Speed,
-                                label = stringResource(R.string.option_speed),
-                                onClick = { showSpeedBar = true },
-                                useBlurControls = useBlurControls,
-                                containerColor = buttonBg
-                            )
-
-                            PlayerActionButton(
-                                icon = Icons.Default.MoreHoriz,
-                                label = stringResource(R.string.player_options),
-                                onClick = { showOptionsSheet = true },
-                                useBlurControls = useBlurControls,
-                                containerColor = buttonBg
-                            )
-
-                            val hasLyrics = playbackManager.currentLyrics != null
-                            val lyricsTint by animateColorAsState(
-                                targetValue = if (hasLyrics) {
-                                    if (useBlurControls) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                                },
-                                label = "lyricsTint"
-                            )
-                            Surface(
-                                shape = CircleShape,
-                                color = buttonBg,
-                                modifier = Modifier.size(36.dp).bounceClick()
+                        AnimatedVisibility(visible = showOptionsBar) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 32.dp)
+                                    .graphicsLayer {
+                                        scaleX = pillAnim.value
+                                        scaleY = pillAnim.value
+                                    },
+                                contentAlignment = Alignment.Center
                             ) {
-                                IconButton(
-                                    onClick = onShowLyrics,
-                                    enabled = hasLyrics
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Lyrics,
-                                        contentDescription = stringResource(R.string.option_lyrics),
-                                        modifier = Modifier.size(20.dp),
-                                        tint = lyricsTint
+                                    val buttonBg = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.surfaceContainerHigh
+
+                                    PlayerActionButton(
+                                        icon = playbackManager.currentOutputIcon,
+                                        label = playbackManager.currentOutputName,
+                                        onClick = { showVolumeBar = true },
+                                        useBlurControls = useBlurControls,
+                                        containerColor = buttonBg
                                     )
+
+                                    PlayerActionButton(
+                                        icon = Icons.AutoMirrored.Filled.QueueMusic,
+                                        label = stringResource(R.string.player_queue),
+                                        onClick = { showQueueSheet = true },
+                                        useBlurControls = useBlurControls,
+                                        containerColor = buttonBg
+                                    )
+
+                                    PlayerActionButton(
+                                        icon = Icons.Default.Speed,
+                                        label = stringResource(R.string.option_speed),
+                                        onClick = { showSpeedBar = true },
+                                        useBlurControls = useBlurControls,
+                                        containerColor = buttonBg
+                                    )
+
+                                    PlayerActionButton(
+                                        icon = Icons.Default.MoreHoriz,
+                                        label = stringResource(R.string.player_options),
+                                        onClick = { showOptionsSheet = true },
+                                        useBlurControls = useBlurControls,
+                                        containerColor = buttonBg
+                                    )
+
+                                    val hasLyrics = playbackManager.currentLyrics != null
+                                    val lyricsTint by animateColorAsState(
+                                        targetValue = if (hasLyrics) {
+                                            if (useBlurControls) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                        },
+                                        label = "lyricsTint"
+                                    )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = buttonBg,
+                                        modifier = Modifier.size(36.dp).bounceClick()
+                                    ) {
+                                        IconButton(
+                                            onClick = onShowLyrics,
+                                            enabled = hasLyrics
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Lyrics,
+                                                contentDescription = stringResource(R.string.option_lyrics),
+                                                modifier = Modifier.size(20.dp),
+                                                tint = lyricsTint
+                                            )
+                                        }
+                                    }
                                 }
                             }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        IconButton(
+                            onClick = { showOptionsBar = !showOptionsBar },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (showOptionsBar) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                                contentDescription = if (showOptionsBar) stringResource(R.string.hide_options) else stringResource(R.string.show_options),
+                                tint = if (useBlurControls) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                 }
