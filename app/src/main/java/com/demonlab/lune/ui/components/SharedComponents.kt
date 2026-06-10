@@ -167,12 +167,30 @@ fun SongItem(
                 }
             },
             supportingContent = {
-                Text(
-                    "${formatDuration(song.duration)} • ${song.artist}",
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (currentlyPlaying) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (settingsManager.isBitrateOnList && (song.bitrate != null || song.format.isNotEmpty())) {
+                    Column {
+                        Text(
+                            "${formatDuration(song.duration)} • ${song.artist}",
+                            maxLines = 1,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (currentlyPlaying) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        val bitrateText = if (song.bitrate != null) "${song.format} | ${song.bitrate / 1000}kbps" else song.format
+                        Text(
+                            bitrateText,
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
+                } else {
+                    Text(
+                        "${formatDuration(song.duration)} • ${song.artist}",
+                        maxLines = 1,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (currentlyPlaying) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             },
             leadingContent = {
                 Box(contentAlignment = Alignment.Center) {

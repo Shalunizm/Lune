@@ -2,6 +2,7 @@ package com.demonlab.lune.tools
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -173,6 +174,22 @@ class SettingsManager(context: Context) {
     var isSongInfoEnabled: Boolean
         get() = prefs.getBoolean("is_song_info_enabled", false)
         set(value) = prefs.edit().putBoolean("is_song_info_enabled", value).apply()
+
+    private val _isBitrateOnList = mutableStateOf(prefs.getBoolean("is_bitrate_on_list", true))
+    var isBitrateOnList: Boolean
+        get() = _isBitrateOnList.value
+        set(value) {
+            _isBitrateOnList.value = value
+            prefs.edit().putBoolean("is_bitrate_on_list", value).apply()
+        }
+
+    private val _isBitrateOnPlayer = mutableStateOf(prefs.getBoolean("is_bitrate_on_player", true))
+    var isBitrateOnPlayer: Boolean
+        get() = _isBitrateOnPlayer.value
+        set(value) {
+            _isBitrateOnPlayer.value = value
+            prefs.edit().putBoolean("is_bitrate_on_player", value).apply()
+        }
 
     var isBlurEnabled: Boolean
         get() = prefs.getBoolean("is_blur_enabled", true)

@@ -123,7 +123,9 @@
     <string name="haptic_vibration">Haptisches Feedback</string>
     <string name="haptic_vibration_desc">Sanftes Vibrieren bei Player-Steuerung</string>
     <string name="song_info">Song-Info</string>
-    <string name="song_info_desc">Audioformat und Bitrate im Player anzeigen</string>
+    <string name="song_info_desc">Audioformat und Bitrate im Player und in der Liste anzeigen</string>
+    <string name="show_in_song_list">In der Liste anzeigen</string>
+    <string name="show_in_full_player">Im Player anzeigen</string>
     <string name="cover_player">Cover-Player</string>
     <string name="cover_player_desc">Cover-Form, -Größe und -Drehung anpassen</string>
     <string name="shape_default">Standard</string>

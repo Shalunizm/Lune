@@ -129,7 +129,8 @@ fun CustomizationScreen(
 ) {
     var showCustomTitleDialog by remember { mutableStateOf(false) }
     var customTitle by remember { mutableStateOf(settingsManager.customTitle) }
-    
+    var showBitrateSheet by remember { mutableStateOf(false) }
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     if (showCustomTitleDialog) {
@@ -141,7 +142,7 @@ fun CustomizationScreen(
                 OutlinedTextField(
                     value = tempTitle,
                     onValueChange = { tempTitle = it },
-                    label = { Text("Título") },
+                    label = { Text("Titulo") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
@@ -173,13 +174,13 @@ fun CustomizationScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { 
+                title = {
                     Text(
                         stringResource(R.string.customization),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.primary
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -190,7 +191,7 @@ fun CustomizationScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack, 
+                                    Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = stringResource(R.string.cd_back),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
@@ -261,18 +262,18 @@ fun CustomizationScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(12.dp))
-                            
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 val palettes = listOf(
-                                    0 to Color(0xFF6650a4), // Default Purple
-                                    1 to Color(0xFFB04B38), // Sunset Peach
-                                    2 to Color(0xFF386B52), // Sage Green
-                                    3 to Color(0xFF2E6580), // Ocean Breeze
-                                    4 to Color(0xFF6E568F), // Lavender Mist
-                                    5 to Color(0xFF7F5700)  // Warm Amber
+                                    0 to Color(0xFF6650a4),
+                                    1 to Color(0xFFB04B38),
+                                    2 to Color(0xFF386B52),
+                                    3 to Color(0xFF2E6580),
+                                    4 to Color(0xFF6E568F),
+                                    5 to Color(0xFF7F5700)
                                 )
                                 palettes.forEach { (index, color) ->
                                     val isSelected = customColorPalette == index
@@ -357,25 +358,52 @@ fun CustomizationScreen(
                     }
                 )
 
-                SettingsPreferenceItem(
-                    headlineText = stringResource(R.string.song_info),
-                    supportingText = stringResource(R.string.song_info_desc),
-                    icon = Icons.Default.MusicNote,
-                    position = SectionPosition.MIDDLE,
-                    trailingContent = {
-                        Switch(
-                            checked = isSongInfoEnabled,
-                            onCheckedChange = onSongInfoChanged,
-                            thumbContent = {
+                // Song Info: tap to open bitrate location dialog
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 1.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable { showBitrateSheet = true },
+                    shape = RoundedCornerShape(4.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    tonalElevation = 1.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = if (isSongInfoEnabled) Icons.Default.Check else Icons.Default.Close,
+                                    Icons.Default.MusicNote,
                                     contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
-                        )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.song_info),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                stringResource(R.string.song_info_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                )
+                }
 
                 SettingsPreferenceItem(
                     headlineText = stringResource(R.string.cinematic_player),
@@ -439,5 +467,64 @@ fun CustomizationScreen(
 
             }
         }
+    }
+
+    if (showBitrateSheet) {
+        var tempOnList by remember { mutableStateOf(settingsManager.isBitrateOnList) }
+        var tempOnPlayer by remember { mutableStateOf(settingsManager.isBitrateOnPlayer) }
+        AlertDialog(
+            onDismissRequest = { showBitrateSheet = false },
+            title = { Text(stringResource(R.string.song_info), fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { tempOnList = !tempOnList }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = tempOnList, onCheckedChange = { tempOnList = it })
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(stringResource(R.string.show_in_song_list))
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { tempOnPlayer = !tempOnPlayer }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = tempOnPlayer, onCheckedChange = { tempOnPlayer = it })
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(stringResource(R.string.show_in_full_player))
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        settingsManager.isBitrateOnList = tempOnList
+                        settingsManager.isBitrateOnPlayer = tempOnPlayer
+                        showBitrateSheet = false
+                    },
+                    shape = RoundedCornerShape(percent = 50)
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showBitrateSheet = false },
+                    shape = RoundedCornerShape(percent = 50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            shape = RoundedCornerShape(28.dp)
+        )
     }
 }

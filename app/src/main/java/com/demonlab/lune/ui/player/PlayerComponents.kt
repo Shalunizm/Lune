@@ -660,7 +660,7 @@ fun FullPlayer(
                             )
                         }
 
-                        if (settingsManager.isSongInfoEnabled && song.format.isNotEmpty()) {
+                        if (settingsManager.isBitrateOnPlayer && song.format.isNotEmpty()) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 color = if (useBlurControls) blurContainerColor else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
