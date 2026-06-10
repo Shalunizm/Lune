@@ -365,8 +365,8 @@ class Lune : AppCompatActivity() {
                         kotlinx.coroutines.delay(500)
                     }
                 } else {
-                    // When playback stops (natural end), reset progress
-                    if (playbackManager.getProgress() >= 0.90f || playbackManager.getProgress() < 0.01f) {
+                    // Only reset progress when the queue actually ended, not on user pause
+                    if (playbackManager.isQueueFinished) {
                         playbackProgress = 0f
                     }
                 }
