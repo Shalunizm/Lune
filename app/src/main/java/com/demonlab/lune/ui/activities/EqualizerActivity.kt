@@ -256,7 +256,7 @@ fun EqualizerScreen(onBack: () -> Unit) {
                 stringResource(R.string.band_brilliance)
             )
 
-            LaunchedEffect(playbackManager.isPlaying) {
+            LaunchedEffect(playbackManager.currentSong, playbackManager.isPlaying) {
                 playbackManager.refreshEqState()
                 if (playbackManager.isPlaying) {
                     while (playbackManager.eqBandsCount <= 0 || playbackManager.eqBandsRange == null) {
