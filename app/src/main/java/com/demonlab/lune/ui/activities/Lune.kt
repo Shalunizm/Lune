@@ -1632,63 +1632,76 @@ fun MainScreen(
             val hasBlurBackgroundMini = blurEnabled &&
                 (if (isDarkThemeMini) blurDarkMode else blurLightMode)
 
-            if (settingsManager.isMiniPlayerMinimized) {
-                MiniPlayerMinimized(
-                    song = song,
-                    coverShape = coverShape,
-                    coverScale = coverScale,
-                    coverSpin = coverSpin,
-                    coverVinylEffect = coverVinylEffect,
-                    hasBlurBackground = hasBlurBackgroundMini,
-                    isDarkTheme = isDarkThemeMini,
-                    isPlaying = isPlaying,
-                    onRestore = { settingsManager.isMiniPlayerMinimized = false },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 12.dp, bottom = bottomInset + 12.dp)
-                )
-            } else {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(animationSpec = tween(350)),
-                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(animationSpec = tween(250)),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(start = 25.dp, end = 25.dp)
-                        .padding(bottom = bottomInset + 8.dp)
-                ) {
-                    MiniPlayer(
-                        song = song,
-                        isPlaying = isPlaying,
-                        showWaveform = playbackManager.isMiniPlayerVisualizerEnabled,
-                        visualizerData = visualizerData,
-                        currentOutputIcon = playbackManager.currentOutputIcon,
-                        coverShape = coverShape,
-                        coverScale = coverScale,
-                        coverSpin = coverSpin,
-                        coverVinylEffect = coverVinylEffect,
-                        controlsIconStyle = controlsIconStyle,
-                        isControlsFilled = isControlsFilled,
-                        useCustomControlsColor = useCustomControlsColor,
-                        controlsColorPalette = controlsColorPalette,
-                        shape = miniPlayerShape,
-                        hasBlurBackground = hasBlurBackgroundMini,
-                        isDarkTheme = isDarkThemeMini,
-                        onTogglePlay = { 
-                            if (settingsManager.isHapticVibrationEnabled) {
-                                vibrator.triggerLightVibration()
-                            }
-                            if (isPlaying) playbackManager.pause() else playbackManager.resume()
-                            onIsPlayingChange(!isPlaying)
-                        },
-                        onExpand = { onIsPlayerExpandedChange(true) },
-                        onPrevious = playPrevious,
-                        onNext = playNext,
-                        onSearchClick = { showSearchScreen = true },
-                        onScrollToCurrent = { scrollToCurrentTrigger.value++ },
-                        onMinimize = { settingsManager.isMiniPlayerMinimized = true }
-                    )
+            AnimatedContent(
+                targetState = settingsManager.isMiniPlayerMinimized,
+                transitionSpec = {
+                    fadeIn(tween(200)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300, easing = FastOutSlowInEasing)) togetherWith
+                    fadeOut(tween(150)) + scaleOut(targetScale = 0.8f, animationSpec = tween(250, easing = FastOutSlowInEasing)) using
+                    SizeTransform(clip = false) { _, _ ->
+                        tween(300, easing = FastOutSlowInEasing)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
+                label = "miniPlayerTransition"
+            ) { minimized ->
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    if (minimized) {
+                        MiniPlayerMinimized(
+                            song = song,
+                            coverShape = coverShape,
+                            coverScale = coverScale,
+                            coverSpin = coverSpin,
+                            coverVinylEffect = coverVinylEffect,
+                            hasBlurBackground = hasBlurBackgroundMini,
+                            isDarkTheme = isDarkThemeMini,
+                            isPlaying = isPlaying,
+                            onRestore = { settingsManager.isMiniPlayerMinimized = false },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 12.dp, bottom = bottomInset + 12.dp)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 25.dp, end = 25.dp)
+                                .padding(bottom = bottomInset + 8.dp)
+                        ) {
+                            MiniPlayer(
+                                song = song,
+                                isPlaying = isPlaying,
+                                showWaveform = playbackManager.isMiniPlayerVisualizerEnabled,
+                                visualizerData = visualizerData,
+                                currentOutputIcon = playbackManager.currentOutputIcon,
+                                coverShape = coverShape,
+                                coverScale = coverScale,
+                                coverSpin = coverSpin,
+                                coverVinylEffect = coverVinylEffect,
+                                controlsIconStyle = controlsIconStyle,
+                                isControlsFilled = isControlsFilled,
+                                useCustomControlsColor = useCustomControlsColor,
+                                controlsColorPalette = controlsColorPalette,
+                                shape = miniPlayerShape,
+                                hasBlurBackground = hasBlurBackgroundMini,
+                                isDarkTheme = isDarkThemeMini,
+                                onTogglePlay = { 
+                                    if (settingsManager.isHapticVibrationEnabled) {
+                                        vibrator.triggerLightVibration()
+                                    }
+                                    if (isPlaying) playbackManager.pause() else playbackManager.resume()
+                                    onIsPlayingChange(!isPlaying)
+                                },
+                                onExpand = { onIsPlayerExpandedChange(true) },
+                                onPrevious = playPrevious,
+                                onNext = playNext,
+                                onSearchClick = { showSearchScreen = true },
+                                onScrollToCurrent = { scrollToCurrentTrigger.value++ },
+                                onMinimize = { settingsManager.isMiniPlayerMinimized = true }
+                            )
+                        }
+                    }
                 }
             }
         }
