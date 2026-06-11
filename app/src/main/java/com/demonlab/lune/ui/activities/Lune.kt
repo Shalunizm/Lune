@@ -1509,7 +1509,8 @@ fun MainScreen(
                         playbackManager.toggleFavorite(song)?.let { updated ->
                             musicViewModel.syncFavoriteStatusInMemory(updated.id, updated.isFavorite)
                         }
-                    }
+                    },
+                    scrollToCurrentTrigger = scrollToCurrentTrigger
                 )
             }
         }
@@ -1552,7 +1553,8 @@ fun MainScreen(
                         playbackManager.toggleFavorite(song)?.let { updated ->
                             musicViewModel.syncFavoriteStatusInMemory(updated.id, updated.isFavorite)
                         }
-                    }
+                    },
+                    scrollToCurrentTrigger = scrollToCurrentTrigger
                 )
             }
         }
@@ -1595,7 +1597,8 @@ fun MainScreen(
                         playbackManager.toggleFavorite(song)?.let { updated ->
                             musicViewModel.syncFavoriteStatusInMemory(updated.id, updated.isFavorite)
                         }
-                    }
+                    },
+                    scrollToCurrentTrigger = scrollToCurrentTrigger
                 )
             }
         }

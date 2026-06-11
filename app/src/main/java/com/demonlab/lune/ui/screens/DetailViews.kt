@@ -36,7 +36,6 @@ import com.demonlab.lune.tools.PlaybackManager
 import com.demonlab.lune.tools.SettingsManager
 import com.demonlab.lune.tools.Song
 import com.demonlab.lune.ui.components.FastScrollbar
-import com.demonlab.lune.ui.components.ScrollToCurrentButton
 import com.demonlab.lune.ui.components.SongItem
 import com.demonlab.lune.ui.data.Album
 import com.demonlab.lune.ui.playlist.PlaylistOptionsAndRename
@@ -59,7 +58,8 @@ fun PlaylistDetailView(
     currentlyPlayingId: Long?,
     bottomPadding: Dp,
     viewModel: MusicViewModel,
-    onFavoriteClick: ((Song) -> Unit)? = null
+    onFavoriteClick: ((Song) -> Unit)? = null,
+    scrollToCurrentTrigger: MutableState<Int>
 ) {
     val playbackManager = PlaybackManager.getInstance(LocalContext.current)
     val settingsManager = SettingsManager.getInstance(LocalContext.current)
@@ -399,16 +399,13 @@ fun PlaylistDetailView(
             val idx = sortedSongs.indexOfFirst { it.id == currentlyPlayingId }
             if (idx != -1) idx + 1 else -1
         }
-        
-        ScrollToCurrentButton(
-            listState = listState,
-            targetIndex = targetIndex,
-            label = stringResource(R.string.queue_now_playing),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = bottomPadding + 16.dp)
-        )
-        
+
+        LaunchedEffect(scrollToCurrentTrigger.value) {
+            if (targetIndex != -1) {
+                listState.animateScrollToItem(targetIndex)
+            }
+        }
+
         FastScrollbar(
             listState = listState,
             items = sortedSongs,
@@ -433,7 +430,8 @@ fun AlbumDetailView(
     onSortClick: () -> Unit,
     currentlyPlayingId: Long?,
     bottomPadding: Dp,
-    onFavoriteClick: ((Song) -> Unit)? = null
+    onFavoriteClick: ((Song) -> Unit)? = null,
+    scrollToCurrentTrigger: MutableState<Int>
 ) {
     val context = LocalContext.current
     val playbackManager = PlaybackManager.getInstance(context)
@@ -710,16 +708,13 @@ fun AlbumDetailView(
             val idx = sortedSongs.indexOfFirst { it.id == currentlyPlayingId }
             if (idx != -1) idx + 1 else -1
         }
-        
-        ScrollToCurrentButton(
-            listState = listState,
-            targetIndex = targetIndex,
-            label = stringResource(R.string.queue_now_playing),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = bottomPadding + 16.dp)
-        )
-        
+
+        LaunchedEffect(scrollToCurrentTrigger.value) {
+            if (targetIndex != -1) {
+                listState.animateScrollToItem(targetIndex)
+            }
+        }
+
         FastScrollbar(
             listState = listState,
             items = sortedSongs,
@@ -744,7 +739,8 @@ fun FolderDetailView(
     onSortClick: () -> Unit,
     currentlyPlayingId: Long?,
     bottomPadding: Dp,
-    onFavoriteClick: ((Song) -> Unit)? = null
+    onFavoriteClick: ((Song) -> Unit)? = null,
+    scrollToCurrentTrigger: MutableState<Int>
 ) {
     val playbackManager = PlaybackManager.getInstance(LocalContext.current)
     val settingsManager = SettingsManager.getInstance(LocalContext.current)
@@ -1090,19 +1086,16 @@ fun FolderDetailView(
                 }
             }
         }
-
         val targetIndex = remember(sortedSongs, currentlyPlayingId) {
             val idx = sortedSongs.indexOfFirst { it.id == currentlyPlayingId }
             if (idx != -1) idx + 1 else -1
         }
-        ScrollToCurrentButton(
-            listState = listState,
-            targetIndex = targetIndex,
-            label = stringResource(R.string.queue_now_playing),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = bottomPadding + 16.dp)
-        )
+
+        LaunchedEffect(scrollToCurrentTrigger.value) {
+            if (targetIndex != -1) {
+                listState.animateScrollToItem(targetIndex)
+            }
+        }
 
         FastScrollbar(
             listState = listState,
