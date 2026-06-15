@@ -116,11 +116,20 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 coverUri = coverUri?.toString()
             )
             if (success) {
-                syncSongsInternal()
+                allSongs = allSongs.map {
+                    if (it.id == song.id) it.copy(
+                        title = title,
+                        artist = artist,
+                        album = album,
+                        genre = genre ?: it.genre,
+                        coverUrl = coverUri?.toString() ?: it.coverUrl
+                    ) else it
+                }
                 onSuccess()
+                syncSongsInternal()
             }
         }
-    } // added missing brace
+    }
 
     fun restoreOriginalMetadata(song: Song, onSuccess: () -> Unit) {
         viewModelScope.launch {

@@ -1346,7 +1346,7 @@ fun MiniPlayer(
                         .blur(80.dp)
                         .alpha(if (isDarkTheme) 0.2f else 0.35f)
                 ) {
-                    val miniBlurRequest = remember(song.id) {
+                    val miniBlurRequest = remember(song.id, song.coverUrl) {
                         ImageRequest.Builder(miniContext)
                             .data(song.coverUrl ?: song.albumArtUri ?: R.drawable.ic_launcher_foreground)
                             .crossfade(true)
