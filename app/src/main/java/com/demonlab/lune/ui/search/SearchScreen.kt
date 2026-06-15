@@ -110,7 +110,7 @@ fun SearchScreen(
         val searchTerms = query.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }
         
         val matchedSongs = allSongs.filter { song ->
-            val searchTarget = "${song.title} ${song.artist}".lowercase()
+            val searchTarget = "${song.title} ${song.artist} ${song.album}".lowercase()
             searchTerms.all { term -> searchTarget.contains(term) }
         }
 
@@ -118,7 +118,7 @@ fun SearchScreen(
         allAlbums.forEach { album ->
             val nameMatches = searchTerms.all { term -> album.name.lowercase().contains(term) }
             val matchingSongs = album.songs.filter { song ->
-                val searchTarget = "${song.title} ${song.artist}".lowercase()
+                val searchTarget = "${song.title} ${song.artist} ${song.album}".lowercase()
                 searchTerms.all { term -> searchTarget.contains(term) }
             }
             if (nameMatches || matchingSongs.isNotEmpty()) {
@@ -134,7 +134,7 @@ fun SearchScreen(
                 .mapNotNull { mapping -> allSongs.find { it.id == mapping.songId } }
                 
             val matchingSongs = playlistSongs.filter { song ->
-                val searchTarget = "${song.title} ${song.artist}".lowercase()
+                val searchTarget = "${song.title} ${song.artist} ${song.album}".lowercase()
                 searchTerms.all { term -> searchTarget.contains(term) }
             }
             
