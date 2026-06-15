@@ -431,11 +431,37 @@ fun LyricsScreen(onBack: () -> Unit) {
 private fun parseLyrics(raw: String?): List<LyricsLine> {
     if (raw == null) return emptyList()
     
+    val wordLevelPattern = Pattern.compile("<(\\d{2}):(\\d{2})\\.(\\d{2,3})>")
+    val labelPattern = Regex("^[A-Za-z0-9]+:\\s*")
+    
+    val normalizedLines = raw.lines().map { line ->
+        val wMatcher = wordLevelPattern.matcher(line)
+        if (!wMatcher.find()) return@map line
+        
+        val min = wMatcher.group(1).toLong()
+        val sec = wMatcher.group(2).toLong()
+        val msPart = wMatcher.group(3)
+        val ms = when (msPart.length) {
+            1 -> msPart.toLong() * 100
+            2 -> msPart.toLong() * 10
+            else -> msPart.toLong()
+        }
+        val totalMs = (min * 60 * 1000) + (sec * 1000) + ms
+        
+        val textOnly = wMatcher.reset(line).replaceAll("").trim()
+        val cleanText = textOnly.replaceFirst(labelPattern, "").trim()
+        if (cleanText.isEmpty()) return@map line
+        
+        "[%02d:%02d.%02d]%s".format(
+            totalMs / 60000, (totalMs % 60000) / 1000, (totalMs % 1000) / 10,
+            cleanText
+        )
+    }.joinToString("\n")
+    
     val lines = mutableListOf<LyricsLine>()
-    // More lenient pattern to match [00:00.00] or [00:00:00] or [00:00]
     val pattern = Pattern.compile("\\[(\\d{2}):(\\d{2})[.:](\\d{2,3})?\\](.*)")
     
-    raw.lines().forEach { line ->
+    normalizedLines.lines().forEach { line ->
         val matcher = pattern.matcher(line)
         if (matcher.find()) {
             val min = matcher.group(1)?.toLong() ?: 0L
@@ -450,7 +476,6 @@ private fun parseLyrics(raw: String?): List<LyricsLine> {
             }
             val totalMs = (min * 60 * 1000) + (sec * 1000) + ms
             
-            // Only add if it's not a metadata tag (redundant check but safer)
             if (!text.startsWith("[ti:") && !text.startsWith("[ar:") && !text.startsWith("[al:") && !text.startsWith("[by:")) {
                 lines.add(LyricsLine(totalMs, text))
             }
@@ -458,7 +483,6 @@ private fun parseLyrics(raw: String?): List<LyricsLine> {
     }
     
     val sorted = lines.sortedBy { it.timeMs }.toMutableList()
-    // Add instrumental intro if there's a gap at start
     if (sorted.isNotEmpty() && sorted[0].timeMs > 2000) {
         sorted.add(0, LyricsLine(0, ""))
     }
