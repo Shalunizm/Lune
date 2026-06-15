@@ -234,6 +234,8 @@ class Lune : AppCompatActivity() {
             var useCustomColors by remember { mutableStateOf(settingsManager.useCustomColors) }
             var customColorPalette by remember { mutableIntStateOf(settingsManager.customColorPalette) }
             var useAmoledPitchBlack by remember { mutableStateOf(settingsManager.useAmoledPitchBlack) }
+            var isSectionCustomizationEnabled by remember { mutableStateOf(settingsManager.isSectionCustomizationEnabled) }
+            var hiddenSectionTabs by remember { mutableStateOf(settingsManager.hiddenSectionTabs) }
 
             if (showOnboarding) {
                 LuneTheme(
@@ -357,6 +359,8 @@ class Lune : AppCompatActivity() {
                         isControlsFilled = settingsManager.isControlsFilled
                         useCustomControlsColor = settingsManager.useCustomControlsColor
                         controlsColorPalette = settingsManager.controlsColorPalette
+                        isSectionCustomizationEnabled = settingsManager.isSectionCustomizationEnabled
+                        hiddenSectionTabs = settingsManager.hiddenSectionTabs
                         if (hasPermission) {
                             musicViewModel.loadSongs()
                             musicViewModel.loadPlaylists()
@@ -407,12 +411,16 @@ class Lune : AppCompatActivity() {
             val visibleFolders = remember(allFolders, hiddenFolders.value) {
                 allFolders.filter { !hiddenFolders.value.contains(it) }
             }
-            val folders = remember(visibleFolders, rawAllSongs, sTabPlaylists) {
+            val folders = remember(visibleFolders, rawAllSongs, sTabPlaylists, isSectionCustomizationEnabled, hiddenSectionTabs) {
                 val hasFavorites = rawAllSongs.any { it.isFavorite }
                 val base = mutableListOf("RESUME", "ALL", "PLAYLISTS")
                 if (hasFavorites) base.add("FAVORITES")
                 base.add("ALBUMS")
                 if (visibleFolders.isNotEmpty()) base.add("FOLDERS")
+                if (isSectionCustomizationEnabled) {
+                    base.removeAll(hiddenSectionTabs)
+                    if ("RESUME" !in base) base.add(0, "RESUME")
+                }
                 base
             }
             val visibleSongs = remember(rawAllSongs, hiddenFolders.value) {
@@ -451,6 +459,7 @@ class Lune : AppCompatActivity() {
                     rawAllSongs = rawAllSongs,
                     filteredSongs = filteredSongs,
                     folders = folders,
+                    isSectionCustomizationEnabled = isSectionCustomizationEnabled,
                     allFolders = allFolders,
                     allAlbums = allAlbumsList,
                     selectedFolder = selectedFolder,
@@ -495,6 +504,7 @@ fun MainScreen(
     rawAllSongs: List<Song>,
     filteredSongs: List<Song>,
     folders: List<String>,
+    isSectionCustomizationEnabled: Boolean,
     allFolders: List<String>,
     allAlbums: List<String>,
     selectedFolder: String,
@@ -641,6 +651,15 @@ fun MainScreen(
     LaunchedEffect(selectedFolder) {
         if (selectedFolder.isNotEmpty()) {
             settingsManager.lastCategory = selectedFolder
+        }
+    }
+
+    LaunchedEffect(folders) {
+        if (isSectionCustomizationEnabled && selectedFolder !in folders && selectedFolder.isNotEmpty()) {
+            onSelectedFolderChange("RESUME")
+        }
+        if (isSectionCustomizationEnabled && playbackManager.activeCategory != null && playbackManager.activeCategory !in folders) {
+            playbackManager.stopAndClearQueue()
         }
     }
 

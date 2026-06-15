@@ -120,6 +120,9 @@
     <string name="delete_playlist_confirm">确定要删除此播放列表吗？</string>
     <string name="delete">删除</string>
     <string name="custom_title">自定义标题</string>
+    <string name="section_customization">自定义分区</string>
+    <string name="section_customization_desc">选择要显示的分区标签</string>
+    <string name="section_customization_albums">歌手 / 专辑</string>
     <string name="customization">个性化</string>
     <string name="customization_desc">个性化应用样式、标题和颜色</string>
     <string name="use_custom_colors">使用自定义颜色</string>

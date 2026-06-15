@@ -72,8 +72,18 @@ fun SearchScreen(
     var filterAlbums by remember { mutableStateOf(true) }
     var filterArtists by remember { mutableStateOf(true) }
     var filterFolders by remember { mutableStateOf(true) }
+    var filterFavorites by remember { mutableStateOf(true) }
     val isSearchActive = activePlaylistId == -300L
     var searchShuffle by remember { mutableStateOf(settings.getPlaylistShuffle(-300L)) }
+
+    if (settings.isSectionCustomizationEnabled) {
+        val hiddenTabs = settings.hiddenSectionTabs
+        if ("ALL" in hiddenTabs) filterSongs = false
+        if ("FAVORITES" in hiddenTabs) filterFavorites = false
+        if ("PLAYLISTS" in hiddenTabs) filterPlaylists = false
+        if ("ALBUMS" in hiddenTabs) { filterAlbums = false; filterArtists = false }
+        if ("FOLDERS" in hiddenTabs) filterFolders = false
+    }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) searchShuffle = pm.isShuffle
@@ -391,7 +401,7 @@ fun SearchScreen(
                 }
             }
 
-            searchResults.tagResults[sTabFavorites]?.let { songs ->
+            if (filterFavorites) searchResults.tagResults[sTabFavorites]?.let { songs ->
                 if (songs.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(8.dp))
@@ -649,35 +659,43 @@ fun SearchScreen(
     }
 
     if (showFilterDialog) {
+        val sectionCustomizationEnabled = settings.isSectionCustomizationEnabled
+        val hiddenTabs = settings.hiddenSectionTabs
+        val isAllDisabled = sectionCustomizationEnabled && "ALL" in hiddenTabs
+        val isPlaylistsDisabled = sectionCustomizationEnabled && "PLAYLISTS" in hiddenTabs
+        val isAlbumsDisabled = sectionCustomizationEnabled && "ALBUMS" in hiddenTabs
+        val isArtistsDisabled = sectionCustomizationEnabled && "ALBUMS" in hiddenTabs
+        val isFoldersDisabled = sectionCustomizationEnabled && "FOLDERS" in hiddenTabs
+
         AlertDialog(
             onDismissRequest = { showFilterDialog = false },
             title = { Text(sFilterTitle) },
             text = {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = filterSongs, onCheckedChange = { filterSongs = it })
+                        Checkbox(checked = filterSongs, enabled = !isAllDisabled, onCheckedChange = { if (!isAllDisabled) filterSongs = it })
                         Spacer(Modifier.width(8.dp))
-                        Text(sFilterAll, modifier = Modifier.clickable { filterSongs = !filterSongs })
+                        Text(sFilterAll, modifier = Modifier.clickable { if (!isAllDisabled) filterSongs = !filterSongs }, color = if (isAllDisabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else Color.Unspecified)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = filterPlaylists, onCheckedChange = { filterPlaylists = it })
+                        Checkbox(checked = filterPlaylists, enabled = !isPlaylistsDisabled, onCheckedChange = { if (!isPlaylistsDisabled) filterPlaylists = it })
                         Spacer(Modifier.width(8.dp))
-                        Text(sFilterPlaylist, modifier = Modifier.clickable { filterPlaylists = !filterPlaylists })
+                        Text(sFilterPlaylist, modifier = Modifier.clickable { if (!isPlaylistsDisabled) filterPlaylists = !filterPlaylists }, color = if (isPlaylistsDisabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else Color.Unspecified)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = filterAlbums, onCheckedChange = { filterAlbums = it })
+                        Checkbox(checked = filterAlbums, enabled = !isAlbumsDisabled, onCheckedChange = { if (!isAlbumsDisabled) filterAlbums = it })
                         Spacer(Modifier.width(8.dp))
-                        Text(sFilterAlbum, modifier = Modifier.clickable { filterAlbums = !filterAlbums })
+                        Text(sFilterAlbum, modifier = Modifier.clickable { if (!isAlbumsDisabled) filterAlbums = !filterAlbums }, color = if (isAlbumsDisabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else Color.Unspecified)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = filterArtists, onCheckedChange = { filterArtists = it })
+                        Checkbox(checked = filterArtists, enabled = !isArtistsDisabled, onCheckedChange = { if (!isArtistsDisabled) filterArtists = it })
                         Spacer(Modifier.width(8.dp))
-                        Text(sFilterArtist, modifier = Modifier.clickable { filterArtists = !filterArtists })
+                        Text(sFilterArtist, modifier = Modifier.clickable { if (!isArtistsDisabled) filterArtists = !filterArtists }, color = if (isArtistsDisabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else Color.Unspecified)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = filterFolders, onCheckedChange = { filterFolders = it })
+                        Checkbox(checked = filterFolders, enabled = !isFoldersDisabled, onCheckedChange = { if (!isFoldersDisabled) filterFolders = it })
                         Spacer(Modifier.width(8.dp))
-                        Text(sFilterFolder, modifier = Modifier.clickable { filterFolders = !filterFolders })
+                        Text(sFilterFolder, modifier = Modifier.clickable { if (!isFoldersDisabled) filterFolders = !filterFolders }, color = if (isFoldersDisabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f) else Color.Unspecified)
                     }
                 }
             },

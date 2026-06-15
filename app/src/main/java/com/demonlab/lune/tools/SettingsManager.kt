@@ -68,6 +68,14 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("album_browse_mode", false) // false = Artists, true = Albums
         set(value) = prefs.edit().putBoolean("album_browse_mode", value).apply()
 
+    var isSectionCustomizationEnabled: Boolean
+        get() = prefs.getBoolean("section_customization_enabled", false)
+        set(value) = prefs.edit().putBoolean("section_customization_enabled", value).apply()
+
+    var hiddenSectionTabs: Set<String>
+        get() = prefs.getStringSet("hidden_section_tabs", emptySet()) ?: emptySet()
+        set(value) = prefs.edit().putStringSet("hidden_section_tabs", value).apply()
+
     var isSortAscending: Boolean
         get() = prefs.getBoolean("is_sort_ascending", true)
         set(value) = prefs.edit().putBoolean("is_sort_ascending", value).apply()

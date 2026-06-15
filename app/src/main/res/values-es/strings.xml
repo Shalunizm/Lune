@@ -113,6 +113,9 @@
     <string name="delete_playlist_confirm">¿Estás seguro de que deseas eliminar esta lista?</string>
     <string name="delete">Eliminar</string>
     <string name="custom_title">Título personalizado</string>
+    <string name="section_customization">Personalizar secciones</string>
+    <string name="section_customization_desc">Elige qué pestañas de sección mostrar</string>
+    <string name="section_customization_albums">Artistas / Álbumes</string>
     <string name="customization">Personalización</string>
     <string name="customization_desc">Personaliza el estilo de la app, el título y los colores</string>
     <string name="use_custom_colors">Usar colores personalizados</string>

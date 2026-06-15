@@ -12,18 +12,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Brush
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import android.content.Intent
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.BlurOn
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -130,6 +122,8 @@ fun CustomizationScreen(
     var showCustomTitleDialog by remember { mutableStateOf(false) }
     var customTitle by remember { mutableStateOf(settingsManager.customTitle) }
     var showBitrateSheet by remember { mutableStateOf(false) }
+    var isSectionCustomizationEnabled by remember { mutableStateOf(settingsManager.isSectionCustomizationEnabled) }
+    var hiddenSectionTabs by remember { mutableStateOf(settingsManager.hiddenSectionTabs) }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -224,6 +218,84 @@ fun CustomizationScreen(
                     position = SectionPosition.FIRST,
                     onClick = { showCustomTitleDialog = true }
                 )
+
+                SettingsPreferenceItem(
+                    headlineText = stringResource(R.string.section_customization),
+                    supportingText = stringResource(R.string.section_customization_desc),
+                    icon = Icons.Default.ViewAgenda,
+                    position = SectionPosition.MIDDLE,
+                    trailingContent = {
+                        Switch(
+                            checked = isSectionCustomizationEnabled,
+                            onCheckedChange = { enabled ->
+                                isSectionCustomizationEnabled = enabled
+                                settingsManager.isSectionCustomizationEnabled = enabled
+                                if (!enabled) {
+                                    hiddenSectionTabs = emptySet()
+                                    settingsManager.hiddenSectionTabs = emptySet()
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    imageVector = if (isSectionCustomizationEnabled) Icons.Default.Check else Icons.Default.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    }
+                )
+
+                if (isSectionCustomizationEnabled) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 1.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        tonalElevation = 1.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            val isAlbumView = settingsManager.albumBrowseMode
+                            val sectionItems = listOf(
+                                "ALL" to Icons.Default.LibraryMusic,
+                                "FAVORITES" to Icons.Default.Favorite,
+                                "PLAYLISTS" to Icons.AutoMirrored.Filled.QueueMusic,
+                                "ALBUMS" to if (isAlbumView) Icons.Default.Album else Icons.Default.Person,
+                                "FOLDERS" to Icons.Default.Folder
+                            )
+
+                            sectionItems.forEach { (key, icon) ->
+                                val isActive = key !in hiddenSectionTabs
+                                Surface(
+                                    onClick = {
+                                        val newHidden = hiddenSectionTabs.toMutableSet()
+                                        if (isActive) newHidden.add(key) else newHidden.remove(key)
+                                        hiddenSectionTabs = newHidden
+                                        settingsManager.hiddenSectionTabs = newHidden
+                                    },
+                                    shape = CircleShape,
+                                    color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
+                                    modifier = Modifier.size(44.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            icon,
+                                            contentDescription = null,
+                                            tint = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 SettingsPreferenceItem(
                     headlineText = stringResource(R.string.use_custom_colors),

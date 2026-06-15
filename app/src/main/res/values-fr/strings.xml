@@ -120,6 +120,9 @@
     <string name="delete_playlist_confirm">Êtes-vous sûr de vouloir supprimer cette playlist ?</string>
     <string name="delete">Supprimer</string>
     <string name="custom_title">Titre personnalisé</string>
+    <string name="section_customization">Personnaliser les sections</string>
+    <string name="section_customization_desc">Choisissez les onglets de section à afficher</string>
+    <string name="section_customization_albums">Artistes / Albums</string>
     <string name="customization">Personnalisation</string>
     <string name="customization_desc">Personnaliser le style, le titre et les couleurs de l’application</string>
     <string name="use_custom_colors">Utiliser des couleurs personnalisées</string>

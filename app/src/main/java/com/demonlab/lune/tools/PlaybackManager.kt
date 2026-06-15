@@ -729,6 +729,16 @@ class PlaybackManager private constructor(private val context: Context) {
         stopStatsTracking()
     }
 
+    fun stopAndClearQueue() {
+        stop()
+        activePlaylist = emptyList()
+        activePlaylistId = null
+        activePlaylistName = null
+        activeCategory = null
+        currentSong = null
+        settings.activeCategory = ""
+    }
+
     private fun startStatsTracking() {
         if (statsJob != null) return
         statsJob = managerScope.launch {
