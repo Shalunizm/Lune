@@ -224,6 +224,9 @@ class PlaybackManager private constructor(private val context: Context) {
     private val _favoriteChanged = MutableSharedFlow<Pair<Long, Boolean>>(extraBufferCapacity = 1)
     val favoriteChanged: SharedFlow<Pair<Long, Boolean>> = _favoriteChanged.asSharedFlow()
 
+    private val _refreshNotification = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val refreshNotification: SharedFlow<Unit> = _refreshNotification.asSharedFlow()
+
 
 
 
@@ -865,6 +868,8 @@ class PlaybackManager private constructor(private val context: Context) {
         settings.isShuffle = isShuffle
 
         if (isShuffle) updateShuffledQueue()
+
+        _refreshNotification.tryEmit(Unit)
     }
 
     fun toggleCrossfade() {
@@ -1232,6 +1237,7 @@ class PlaybackManager private constructor(private val context: Context) {
         kotlinx.coroutines.MainScope().launch {
             metadataManager.updateFavoriteStatus(targetSong.id, newFavoriteStatus)
             _favoriteChanged.emit(targetSong.id to newFavoriteStatus)
+            _refreshNotification.tryEmit(Unit)
             onFavoriteToggled?.invoke(updatedSong)
         }
         

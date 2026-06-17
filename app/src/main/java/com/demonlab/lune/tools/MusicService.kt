@@ -192,6 +192,17 @@ class MusicService : MediaBrowserServiceCompat() {
         }
         sessionToken = mediaSession?.sessionToken
         settingsManager = SettingsManager.getInstance(this)
+
+        serviceScope.launch {
+            PlaybackManager.getInstance(this@MusicService).refreshNotification.collect {
+                val pm = PlaybackManager.getInstance(this@MusicService)
+                val song = pm.currentSong
+                if (song != null) {
+                    showNotification(song, isPlaying())
+                }
+                updatePlaybackState()
+            }
+        }
     }
 
     private fun requestAudioFocus(): Boolean {
