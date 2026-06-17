@@ -109,6 +109,8 @@ class MusicService : MediaBrowserServiceCompat() {
         const val ACTION_PAUSE = "com.demonlab.lune.ACTION_PAUSE"
         const val ACTION_PREVIOUS = "com.demonlab.lune.ACTION_PREVIOUS"
         const val ACTION_NEXT = "com.demonlab.lune.ACTION_NEXT"
+        const val ACTION_SHUFFLE = "com.demonlab.lune.ACTION_SHUFFLE"
+        const val ACTION_FAVORITE = "com.demonlab.lune.ACTION_FAVORITE"
     }
 
     inner class MusicBinder : Binder() {
@@ -130,6 +132,24 @@ class MusicService : MediaBrowserServiceCompat() {
                     PlaybackManager.getInstance(applicationContext).playPreviousFromService()
                 }
                 override fun onSeekTo(pos: Long) { seekTo(pos.toInt()) }
+                override fun onCustomAction(action: String?, extras: Bundle?) {
+                    val pm = PlaybackManager.getInstance(applicationContext)
+                    when (action) {
+                        "shuffle" -> {
+                            pm.toggleShuffle()
+                            pm.currentSong?.let { showNotification(it, isPlaying()) }
+                            updatePlaybackState()
+                        }
+                        "favorite" -> {
+                            pm.toggleFavorite(onFavoriteToggled = { updatedSong ->
+                                val provider = MusicProvider(applicationContext)
+                                provider.updateSongInCache(updatedSong)
+                                showNotification(updatedSong, isPlaying())
+                                updatePlaybackState()
+                            })
+                        }
+                    }
+                }
 
                 override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
                     if (mediaId == null) return
@@ -281,12 +301,25 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
+        val pm = PlaybackManager.getInstance(this)
 
         when (action) {
             ACTION_PLAY -> resume()
             ACTION_PAUSE -> pause()
-            ACTION_PREVIOUS -> PlaybackManager.getInstance(this).playPreviousFromService()
-            ACTION_NEXT -> PlaybackManager.getInstance(this).playNextFromService()
+            ACTION_PREVIOUS -> pm.playPreviousFromService()
+            ACTION_NEXT -> pm.playNextFromService()
+            ACTION_SHUFFLE -> {
+                pm.toggleShuffle()
+                currentSong()?.let { showNotification(it, isPlaying()) }
+                updatePlaybackState()
+            }
+            ACTION_FAVORITE -> {
+                pm.toggleFavorite(onFavoriteToggled = { updatedSong ->
+                    val provider = MusicProvider(this)
+                    provider.updateSongInCache(updatedSong)
+                    showNotification(updatedSong, isPlaying())
+                })
+            }
         }
         return START_NOT_STICKY
     }
@@ -965,6 +998,7 @@ class MusicService : MediaBrowserServiceCompat() {
             .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
             .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
             .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, song.duration.toLong())
+            .putLong("is_favorite", if (song.isFavorite) 1L else 0L)
 
         art?.let {
             metadataBuilder.putBitmap(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)
@@ -977,15 +1011,36 @@ class MusicService : MediaBrowserServiceCompat() {
         val state = if (isPlaying()) android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
                     else android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
 
+        val pm = PlaybackManager.getInstance(this)
+        val currentSong = pm.currentSong
+        val extras = Bundle().apply {
+            putBoolean("shuffle_mode", pm.isShuffle)
+            putInt("repeat_mode", pm.repeatMode)
+        }
+
         val stateBuilder = android.support.v4.media.session.PlaybackStateCompat.Builder()
             .setActions(
                 android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY or
                 android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE or
                 android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
                 android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO
+                android.support.v4.media.session.PlaybackStateCompat.ACTION_SEEK_TO or
+                android.support.v4.media.session.PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE
             )
             .setState(state, currentPosition().toLong(), 1.0f)
+            .setExtras(extras)
+
+        val shuffleAction = android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+            "shuffle", "Shuffle",
+            if (pm.isShuffle) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle
+        ).build()
+        stateBuilder.addCustomAction(shuffleAction)
+
+        val favIcon = if (currentSong?.isFavorite == true) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+        val favoriteAction = android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+            "favorite", "Favorite", favIcon
+        ).build()
+        stateBuilder.addCustomAction(favoriteAction)
 
         mediaSession?.setPlaybackState(stateBuilder.build())
     }
@@ -1022,6 +1077,22 @@ class MusicService : MediaBrowserServiceCompat() {
             )
         }
 
+        val pm = PlaybackManager.getInstance(this)
+        val isShuffleOn = pm.isShuffle
+        val isFav = song.isFavorite
+
+        val shuffleAction = NotificationCompat.Action(
+            if (isShuffleOn) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle,
+            "Shuffle",
+            getServicePendingIntent(ACTION_SHUFFLE)
+        )
+
+        val favoriteAction = NotificationCompat.Action(
+            if (isFav) R.drawable.ic_favorite else R.drawable.ic_favorite_border,
+            "Favorite",
+            getServicePendingIntent(ACTION_FAVORITE)
+        )
+
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setLargeIcon(art)
@@ -1033,8 +1104,10 @@ class MusicService : MediaBrowserServiceCompat() {
             .addAction(android.R.drawable.ic_media_previous, "Previous", getServicePendingIntent(ACTION_PREVIOUS))
             .addAction(playPauseAction)
             .addAction(android.R.drawable.ic_media_next, "Next", getServicePendingIntent(ACTION_NEXT))
+            .addAction(shuffleAction)
+            .addAction(favoriteAction)
             .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(0, 1, 2)
+                .setShowActionsInCompactView(0, 1, 2, 3, 4)
                 .setMediaSession(mediaSession?.sessionToken))
             .build()
 

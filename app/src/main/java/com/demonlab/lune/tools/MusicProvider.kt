@@ -73,6 +73,18 @@ class MusicProvider(private val context: Context) {
         }
     }
 
+    fun updateSongInCache(updatedSong: Song) {
+        val songs = getCachedSongs().toMutableList()
+        val idx = songs.indexOfFirst { it.id == updatedSong.id }
+        if (idx >= 0) {
+            songs[idx] = updatedSong
+            saveToCache(songs)
+        } else {
+            songs.add(updatedSong)
+            saveToCache(songs)
+        }
+    }
+
     private fun hasReadPermission(): Boolean {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_AUDIO

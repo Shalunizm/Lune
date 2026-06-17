@@ -20,6 +20,9 @@ import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.ui.graphics.vector.ImageVector
 import android.media.audiofx.Visualizer
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.*
 import java.util.Calendar
@@ -217,6 +220,9 @@ class PlaybackManager private constructor(private val context: Context) {
     private var visualizer: Visualizer? = null
     private var lastMagnitudes = FloatArray(48) { 0.1f }
     private val smoothingFactor = 1f // 0.7f for very fast and reactive movement
+
+    private val _favoriteChanged = MutableSharedFlow<Pair<Long, Boolean>>(extraBufferCapacity = 1)
+    val favoriteChanged: SharedFlow<Pair<Long, Boolean>> = _favoriteChanged.asSharedFlow()
 
 
 
@@ -1225,6 +1231,7 @@ class PlaybackManager private constructor(private val context: Context) {
         val metadataManager = MetadataManager(context)
         kotlinx.coroutines.MainScope().launch {
             metadataManager.updateFavoriteStatus(targetSong.id, newFavoriteStatus)
+            _favoriteChanged.emit(targetSong.id to newFavoriteStatus)
             onFavoriteToggled?.invoke(updatedSong)
         }
         

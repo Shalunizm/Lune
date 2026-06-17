@@ -278,6 +278,13 @@ class Lune : AppCompatActivity() {
                     playbackManager.restorePlaybackState(musicViewModel.allSongs)
                 }
             }
+
+            // Sync favorite status from external sources (notification, system media)
+            LaunchedEffect(Unit) {
+                playbackManager.favoriteChanged.collect { (songId, isFavorite) ->
+                    musicViewModel.syncFavoriteStatusInMemory(songId, isFavorite)
+                }
+            }
             
             val currentSong = playbackManager.currentSong
             val isPlaying = playbackManager.isPlaying
