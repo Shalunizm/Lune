@@ -111,11 +111,14 @@ class MusicService : MediaBrowserServiceCompat() {
         const val ACTION_NEXT = "com.demonlab.lune.ACTION_NEXT"
         const val ACTION_SHUFFLE = "com.demonlab.lune.ACTION_SHUFFLE"
         const val ACTION_FAVORITE = "com.demonlab.lune.ACTION_FAVORITE"
+        const val PAUSE_TIMEOUT_MS = 5 * 60 * 1000L
     }
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
     }
+
+    private var pauseTimeoutJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -726,6 +729,20 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     fun pause() {
+        pauseTimeoutJob?.cancel()
+        pauseTimeoutJob = serviceScope.launch {
+            delay(PAUSE_TIMEOUT_MS)
+            PlaybackManager.getInstance(applicationContext).savePlaybackState(wasPlaying = false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
+            }
+            mediaSession?.release()
+            stopSelf()
+        }
+
         mediaPlayer?.pause()
         secondaryPlayer?.pause()
         PlaybackManager.getInstance(applicationContext).updatePlayingState(false)
@@ -740,6 +757,7 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     fun resume() {
+        pauseTimeoutJob?.cancel()
         requestAudioFocus()
         mediaPlayer?.start()
         secondaryPlayer?.start()
@@ -1146,6 +1164,7 @@ class MusicService : MediaBrowserServiceCompat() {
         secondaryPlayer?.release()
         mediaSession?.release()
         spatialRampJob?.cancel()
+        pauseTimeoutJob?.cancel()
         serviceScope.cancel()
         super.onDestroy()
     }
